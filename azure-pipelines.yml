@@ -9,6 +9,7 @@ trigger:
 jobs:
 - job: Linux
   pool:
+    name: Default
     demands:
     - agent.name -equals 'jf-aswf-gpu'
 
