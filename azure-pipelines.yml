@@ -9,10 +9,7 @@ trigger:
 jobs:
 - job: Linux
   pool:
-    name: Default
-    demands:
-    - Agent.Name -equals 'jf-aswf-gpu'
-    - Agent.Version -equals 2.153.2
+    name: 'GPU Ubuntu 18.04'
 
   steps:
   - script: nvidia-smi
