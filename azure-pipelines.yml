@@ -1,0 +1,17 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- master
+
+- job: Linux
+  pool:
+    demands:
+    - agent.name -equals 'jf-aswf-gpu'
+
+  steps:
+  - script: nvidia-smi
+    displayName: 'Run a one-line script'
+
