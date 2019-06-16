@@ -11,7 +11,8 @@ jobs:
   pool:
     name: Default
     demands:
-    - agent.name -equals 'jf-aswf-gpu'
+    - Agent.Name -equals 'jf-aswf-gpu'
+    - Agent.Version -equals 2.153.2
 
   steps:
   - script: nvidia-smi
