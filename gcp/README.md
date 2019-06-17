@@ -106,6 +106,14 @@ nvidia-smi
 
 it should execute correctly.
 
+## Destroying your GCP Infrastructure
+
+As long as your VM is running, it is generating costs, so don't forget to destroy it when you are done:
+
+```
+terraform destroy
+```
+
 
 
 
