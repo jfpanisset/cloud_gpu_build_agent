@@ -1,0 +1,95 @@
+---
+- name: "Configure GCP GPU VM"
+  hosts: 'all'
+  become: yes
+  become_method: sudo
+
+  vars:
+    NVIDIA_driver_version: "418.67"
+    NVIDIA_driver_filename: "NVIDIA-Linux-x86_64-{{ NVIDIA_driver_version }}.run"
+    azure_pipelines_agent_version: "2.153.2"
+    azure_pipelines_agent_filename: "vsts-agent-linux-x64-{{ azure_pipelines_agent_version }}.tar.gz"
+    azure_pipelines_agent_dir: "myagent"
+    azure_pipelines_organization: "YOUR_AZURE_PIPELINES_ORGANIZATION"
+    azure_pipelines_token: "YOUR_AZURE_PIPELINES_PAT_TOKEN"
+    azure_pipelines_pool: "GPU Ubuntu 18.04"
+    
+
+ # roles:
+    
+  tasks:
+  - name: Update and upgrade apt packages
+    apt:
+      upgrade: yes
+      update_cache: yes
+
+  - name: Install GCC and make
+    apt:
+       name: "{{ packages }}"
+    vars:
+      packages:
+        - gcc
+        - make
+
+  - name: Download NVIDIA driver
+    get_url:
+      url: "http://us.download.nvidia.com/tesla/{{ NVIDIA_driver_version}}/{{ NVIDIA_driver_filename}}"
+      dest: "/tmp/{{ NVIDIA_driver_filename}}"
+      mode: '0755'
+
+  - name: Install the NVIDIA driver in silent mode, will not upgrade a previous version (you need fancier check)
+    command: "/tmp/{{ NVIDIA_driver_filename }} -s"
+    args:
+      creates: /proc/driver/nvidia/version
+
+  - name: Download Azure Pipelines agent for Linux
+    get_url:
+      url: "https://vstsagentpackage.azureedge.net/agent/{{ azure_pipelines_agent_version }}/{{ azure_pipelines_agent_filename}}"
+      dest: "/tmp/{{ azure_pipelines_agent_filename }}"
+      mode: '0644'
+
+  - name: Create install dir for Azure Pipelines agent
+    file:
+      path: "~/{{ azure_pipelines_agent_dir }}"
+      state: directory
+    become: no
+  
+  - name: Unpack the archive into installation dir
+    unarchive:
+      src: "/tmp/{{ azure_pipelines_agent_filename }}"
+      dest: "~/{{ azure_pipelines_agent_dir }}"
+      remote_src: yes
+    become: no
+    args:
+      creates: "~/{{ azure_pipelines_agent_dir }}/config.sh"
+
+  - name: Configure the Azure Pipelines agent
+    command: "./config.sh --unattended 
+      --url https://dev.azure.com/{{ azure_pipelines_organization }} 
+      --auth pat 
+      --token {{ azure_pipelines_token }} 
+      --pool '{{ azure_pipelines_pool }}' 
+      --agent {{ ansible_hostname }} 
+      --acceptTeeEula"
+    become: no
+    args:
+      chdir: "~/{{ azure_pipelines_agent_dir}}"
+      creates: "~/{{ azure_pipelines_agent_dir}}/.agent"
+
+  # FIXME: hardcoded path
+  - name: Install Azure Pipelines agent as a service
+    command: "./svc.sh install"
+    args:
+      chdir: "/home/testadmin/{{ azure_pipelines_agent_dir }}"
+
+  # FIXME: hardcoded path
+  - name: Start the Azure Pipelines agent service
+    command: "./svc.sh start"
+    args:
+      chdir: "/home/testadmin/{{ azure_pipelines_agent_dir }}"
+
+
+
+
+
+ 

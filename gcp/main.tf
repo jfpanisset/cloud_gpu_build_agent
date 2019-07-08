@@ -35,16 +35,30 @@ resource "google_compute_instance" "default" {
   }
 
   metadata = {
-    ssh-keys = "${var.your_username}:${file("~/.ssh/id_rsa.pub")}"
+    ssh-keys = "${var.admin_username}:${file("~/.ssh/id_rsa.pub")}"
   }
 
   scheduling {
     // GPU hosts don't support live migration
     on_host_maintenance = "terminate"
   }
+
+  connection {
+    type        = "ssh"
+    user        = "${var.admin_username}"
+    private_key = "${file("~/.ssh/id_rsa")}"
+    host        = "${self.network_interface.0.access_config.0.nat_ip}"
+  }
+  provisioner "remote-exec" {
+    inline = ["sudo apt update && sudo apt install -y python-minimal"]
+  }
+
+  provisioner "local-exec" {
+    command = "ansible-playbook -u ${var.admin_username} -i '${self.network_interface.0.access_config.0.nat_ip},' --private-key '~/.ssh/id_rsa' --extra-vars 'azure_pipelines_organization=${var.azure_pipelines_organization}' --extra-vars 'azure_pipelines_token=${var.azure_pipelines_token}' ../provision.yml" 
+  }
 }
 
-output "ip" {
+output "public_ip_address" {
   value = "${google_compute_instance.default.network_interface.0.access_config.0.nat_ip}"
 }
 
