@@ -136,12 +136,15 @@ The Terraform Azure Resource Manager will let you create a virtual machine using
 ```bash
 cd azure
 terraform init
-terraform apply \
+terraform taint azurerm_network_interface.main
+terraform taint azurerm_public_ip.main
+terraform taint azurerm_virtual_main.main
+terraform apply -refresh=true \
     -var 'azure_pipelines_token=YOUR_AZURE_PIPELINES_PAT_TOKEN' \
     -var 'azure_pipelines_organization=YOUR_AZURE_PIPELINES_ORGANIZATION'
 ```
 
-This will copy your public SSH key from your `~/.ssh/id_rsa.pub` file to the VM to enable passwordless `ssh` access:
+The `terraform taint` commands may be required to ensure that Terraform doesn't remember the dynamic IP address between runs. This will copy your public SSH key from your `~/.ssh/id_rsa.pub` file to the VM to enable passwordless `ssh` access:
 
 
 ```bash

@@ -31,6 +31,11 @@ resource "azurerm_public_ip" "main" {
   resource_group_name = "${azurerm_resource_group.main.name}"
   allocation_method   = "Dynamic"
 }
+
+data "azurerm_public_ip" "main" {
+  name                = "${var.prefix}-PublicIp1"
+  resource_group_name = "${azurerm_resource_group.main.name}"
+}
 resource "azurerm_network_interface" "main" {
   name                = "${var.prefix}-nic"
   location            = "${azurerm_resource_group.main.location}"
@@ -84,26 +89,22 @@ resource "azurerm_virtual_machine" "main" {
   tags = {
     environment = "staging"
   }
-
-  connection {
-    type        = "ssh"
-    user        = "${var.admin_username}"
-    private_key = "${file("~/.ssh/id_rsa")}"
-    host        = "${azurerm_public_ip.main.ip_address}"
-  }
   provisioner "remote-exec" {
+    connection {
+      type        = "ssh"
+      user        = "${var.admin_username}"
+      private_key = "${file("~/.ssh/id_rsa")}"
+      host        = "${data.azurerm_public_ip.main.ip_address}"
+    }
     inline = ["sudo apt update && sudo apt -y upgrade && sudo apt install -y python-minimal"]
   }
 
   provisioner "local-exec" {
-    command = "ansible-playbook -u ${var.admin_username} -i '${azurerm_public_ip.main.ip_address},' --private-key '~/.ssh/id_rsa' --extra-vars 'azure_pipelines_organization=${var.azure_pipelines_organization}' --extra-vars 'azure_pipelines_token=${var.azure_pipelines_token}' ../provision.yml" 
+    command = "ansible-playbook -u ${var.admin_username} -i '${data.azurerm_public_ip.main.ip_address},' --private-key '~/.ssh/id_rsa' --extra-vars 'azure_pipelines_organization=${var.azure_pipelines_organization}' --extra-vars 'azure_pipelines_token=${var.azure_pipelines_token}' ../provision.yml" 
   }
 }
 
-data "azurerm_public_ip" "main" {
-  name                = "${azurerm_public_ip.main.name}"
-  resource_group_name = "${azurerm_virtual_machine.main.resource_group_name}"
-}
+
 
 output "public_ip_address" {
   value = "${data.azurerm_public_ip.main.ip_address}"
