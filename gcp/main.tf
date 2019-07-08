@@ -50,7 +50,7 @@ resource "google_compute_instance" "default" {
     host        = "${self.network_interface.0.access_config.0.nat_ip}"
   }
   provisioner "remote-exec" {
-    inline = ["sudo apt update && sudo apt install -y python-minimal"]
+    inline = ["sudo apt update && sudo apt -y upgrade && sudo apt install -y python-minimal"]
   }
 
   provisioner "local-exec" {

@@ -92,7 +92,7 @@ resource "azurerm_virtual_machine" "main" {
     host        = "${azurerm_public_ip.main.ip_address}"
   }
   provisioner "remote-exec" {
-    inline = ["sudo apt update && sudo apt install -y python-minimal"]
+    inline = ["sudo apt update && sudo apt -y upgrade && sudo apt install -y python-minimal"]
   }
 
   provisioner "local-exec" {
