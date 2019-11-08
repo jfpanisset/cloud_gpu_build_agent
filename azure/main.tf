@@ -1,7 +1,7 @@
 # Configure the Azure Provider
 provider "azurerm" {
   # whilst the `version` attribute is optional, we recommend pinning to a given version of the Provider
-  version = "=1.31.0"
+  version = "=1.36.1"
 }
 
 # Create a resource group
@@ -14,12 +14,13 @@ resource "azurerm_resource_group" "main" {
 resource "azurerm_virtual_network" "main" {
   name                = "${var.prefix}-network"
   address_space       = ["10.0.0.0/16"]
+  dns_servers         = ["8.8.8.8", "8.8.4.4"]
   location            = "${azurerm_resource_group.main.location}"
   resource_group_name = "${azurerm_resource_group.main.name}"
 }
 
-resource "azurerm_subnet" "internal" {
-  name                 = "internal"
+resource "azurerm_subnet" "main" {
+  name                 = "${var.prefix}-subnet"
   resource_group_name  = "${azurerm_resource_group.main.name}"
   virtual_network_name = "${azurerm_virtual_network.main.name}"
   address_prefix       = "10.0.2.0/24"
@@ -27,23 +28,53 @@ resource "azurerm_subnet" "internal" {
 
 resource "azurerm_public_ip" "main" {
   name                = "${var.prefix}-PublicIp1"
-  location            = "${var.location}"
+  location            = "${azurerm_resource_group.main.location}"
   resource_group_name = "${azurerm_resource_group.main.name}"
   allocation_method   = "Dynamic"
+  domain_name_label   = "${var.prefix}"
+
+
+  tags = {
+    environment = "main"
+  }
+}
+
+resource "azurerm_network_security_group" "main" {
+    name                = "${var.prefix}-NetworkSecurityGroup"
+    location            = "${azurerm_resource_group.main.location}"
+    resource_group_name = "${azurerm_resource_group.main.name}"
+
+    security_rule {
+        name                       = "SSH"
+        priority                   = 1001
+        direction                  = "Inbound"
+        access                     = "Allow"
+        protocol                   = "Tcp"
+        source_port_range          = "*"
+        destination_port_range     = "22"
+        source_address_prefix      = "*"
+        destination_address_prefix = "*"
+    }
+
+    tags = {
+        environment = "main"
+    }
 }
 
 data "azurerm_public_ip" "main" {
-  name                = "${var.prefix}-PublicIp1"
-  resource_group_name = "${azurerm_resource_group.main.name}"
+   name                = "${azurerm_public_ip.main.name}"
+   resource_group_name = "${azurerm_resource_group.main.name}"
 }
+
 resource "azurerm_network_interface" "main" {
   name                = "${var.prefix}-nic"
   location            = "${azurerm_resource_group.main.location}"
   resource_group_name = "${azurerm_resource_group.main.name}"
+  network_security_group_id = "${azurerm_network_security_group.main.id}"
 
   ip_configuration {
     name                          = "testconfiguration1"
-    subnet_id                     = "${azurerm_subnet.internal.id}"
+    subnet_id                     = "${azurerm_subnet.main.id}"
     private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = "${azurerm_public_ip.main.id}"
   }
@@ -94,18 +125,16 @@ resource "azurerm_virtual_machine" "main" {
       type        = "ssh"
       user        = "${var.admin_username}"
       private_key = "${file("~/.ssh/id_rsa")}"
-      host        = "${data.azurerm_public_ip.main.ip_address}"
+      host        = "${data.azurerm_public_ip.main.fqdn}"
     }
     inline = ["sudo apt update && sudo apt -y upgrade && sudo apt install -y python-minimal"]
   }
 
   provisioner "local-exec" {
-    command = "ansible-playbook -u ${var.admin_username} -i '${data.azurerm_public_ip.main.ip_address},' --private-key '~/.ssh/id_rsa' --extra-vars 'azure_pipelines_organization=${var.azure_pipelines_organization}' --extra-vars 'azure_pipelines_token=${var.azure_pipelines_token}' ../provision.yml" 
+    command = "ansible-playbook -u ${var.admin_username} -i '${data.azurerm_public_ip.main.fqdn},' --private-key '~/.ssh/id_rsa' --ssh-common-args '-o StrictHostKeyChecking=no' --extra-vars 'azure_pipelines_organization=${var.azure_pipelines_organization}' --extra-vars 'azure_pipelines_token=${var.azure_pipelines_token}' ../provision.yml" 
   }
 }
 
-
-
-output "public_ip_address" {
-  value = "${data.azurerm_public_ip.main.ip_address}"
+output "public_ip_fqdn" {
+  value = "${data.azurerm_public_ip.main.fqdn}"
 }

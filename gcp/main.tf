@@ -54,7 +54,7 @@ resource "google_compute_instance" "default" {
   }
 
   provisioner "local-exec" {
-    command = "ansible-playbook -u ${var.admin_username} -i '${self.network_interface.0.access_config.0.nat_ip},' --private-key '~/.ssh/id_rsa' --extra-vars 'azure_pipelines_organization=${var.azure_pipelines_organization}' --extra-vars 'azure_pipelines_token=${var.azure_pipelines_token}' ../provision.yml" 
+    command = "ansible-playbook -u ${var.admin_username} -i '${self.network_interface.0.access_config.0.nat_ip},' --private-key '~/.ssh/id_rsa' --ssh-common-args '-o StrictHostKeyChecking=no' --extra-vars 'azure_pipelines_organization=${var.azure_pipelines_organization}' --extra-vars 'azure_pipelines_token=${var.azure_pipelines_token}' ../provision.yml" 
   }
 }
 

@@ -5,9 +5,10 @@
   become_method: sudo
 
   vars:
-    NVIDIA_driver_version: "418.67"
+    NVIDIA_driver_version_dir: "418.87"
+    NVIDIA_driver_version: "418.87.01"
     NVIDIA_driver_filename: "NVIDIA-Linux-x86_64-{{ NVIDIA_driver_version }}.run"
-    azure_pipelines_agent_version: "2.153.2"
+    azure_pipelines_agent_version: "2.160.0"
     azure_pipelines_agent_filename: "vsts-agent-linux-x64-{{ azure_pipelines_agent_version }}.tar.gz"
     azure_pipelines_agent_dir: "myagent"
     azure_pipelines_organization: "YOUR_AZURE_PIPELINES_ORGANIZATION"
@@ -33,7 +34,7 @@
 
   - name: Download NVIDIA driver
     get_url:
-      url: "http://us.download.nvidia.com/tesla/{{ NVIDIA_driver_version}}/{{ NVIDIA_driver_filename}}"
+      url: "http://us.download.nvidia.com/tesla/{{ NVIDIA_driver_version_dir}}/{{ NVIDIA_driver_filename}}"
       dest: "/tmp/{{ NVIDIA_driver_filename}}"
       mode: '0755'
 

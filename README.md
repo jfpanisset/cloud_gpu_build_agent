@@ -86,6 +86,8 @@ ssh testadmin@`terraform output public_ip_address`
 
 ### Microsoft Azure Setup
 
+This article on how to [Create a complete Linux virtual machine infrastructure in Azure with Terraform](https://docs.microsoft.com/en-us/azure/virtual-machines/linux/terraform-create-complete-vm) is a good starting point for the Terraform code required to build a Linux VM on Azure to use as a GPU enabled Azure Pipelines build agent.
+
 #### Installing the Azure CLI and Authentication
 
 The Azure CLI will be used to set up authentication against your Azure account. As per [Install the Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest) on macOS you can install it using [HomeBrew](https://brew.sh/):
@@ -136,15 +138,12 @@ The Terraform Azure Resource Manager will let you create a virtual machine using
 ```bash
 cd azure
 terraform init
-terraform taint azurerm_network_interface.main
-terraform taint azurerm_public_ip.main
-terraform taint azurerm_virtual_main.main
 terraform apply -refresh=true \
     -var 'azure_pipelines_token=YOUR_AZURE_PIPELINES_PAT_TOKEN' \
     -var 'azure_pipelines_organization=YOUR_AZURE_PIPELINES_ORGANIZATION'
 ```
 
-The `terraform taint` commands may be required to ensure that Terraform doesn't remember the dynamic IP address between runs. This will copy your public SSH key from your `~/.ssh/id_rsa.pub` file to the VM to enable passwordless `ssh` access:
+This will copy your public SSH key from your `~/.ssh/id_rsa.pub` file to the VM to enable passwordless `ssh` access:
 
 
 ```bash
