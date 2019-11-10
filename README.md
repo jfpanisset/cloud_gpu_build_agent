@@ -48,21 +48,42 @@ brew install terraform
 
 ### Google Cloud Platform Setup
 
+This tutorial on [Getting Started with Terraform on Google Cloud Platform](https://cloud.google.com/community/tutorials/getting-started-on-gcp-with-terraform) is a good starting point to create the GCP resources we need with Terraform, as well as [Managing GCP Projects with Terraform](https://cloud.google.com/community/tutorials/managing-gcp-projects-with-terraform).
+
 #### Creating a GCP Account
 
-First you will need to [create a GCP account](https://console.cloud.google.com), by default Google provides some credits for experimentation. You will then need to go under "IAM & admin" and find the quota metric 'GPUs (all regions)' and change that from 0 to 1 to enable the creation of GPU-enabled VMs. This is not an automatic process, there may be a 12-24h wait before this is enabled (you will get email notification).
+First you will need to [create a GCP account](https://console.cloud.google.com), by default Google provides some credits for experimentation.
 
-#### Creating a Service Account Key
+#### Installing the GCP Command CLI and Authentication
 
-From the GCP console, you will need to create a Service Account Key:
+The GCP CLI will be used to set up authentication against your GCP account. As per [Homebrew Google Cloud SDK](https://formulae.brew.sh/cask/google-cloud-sdk) on macOS you can install it using [HomeBrew](https://brew.sh/):
 
-- APIS & Services
-- Credentials
-- Create Service Account Key
-- Select Default Service Account
-- JSON key
+```bash
+brew update && brew cask install google-cloud-sdk
+```
 
-This will create and download a service key, you should call it `USERNAME_gcp_credentials.json`, do NOT check this into a public repository as it would allow anyone to create resources in your infrastructure and incur costs.
+Next you need to [authorize access for the Cloud SDK tools](https://cloud.google.com/sdk/docs/authorizing). We will be using the "Authorizing with a service account" method:
+
+* [Initialize the Cloud SDK](https://cloud.google.com/sdk/docs/initializing): a browser window will allow you to login to your Google account and authorize the Google Cloud SDK. You will be prompted to enter a project name to create, which will set the name of the current project (note that GCP does not allow you to reuse the name of a previously deleted project):
+```bash
+    gcloud init
+```
+* [Go to the Service Accounts Page](https://console.cloud.google.com/iam-admin/serviceaccounts), select the project you just created from popup list at top of screen, and create a service account for that project (the name doesn't matter too much, but you can use the project name as the service account name to keep things smple). Under "Role" select "Project -> Owner" to give full permissions to the service account.
+* Under "Key Type' select JSON format and click "Create". This will create the service account and download a service key, you should rename it `USERNAME_gcp_credentials.json`, do NOT check this into a public repository as it would allow anyone to create resources in your infrastructure and incur costs.
+* Under "Billing" you need to enable billing for your project using the billing account you initially created when you created your GCP account.
+* Under "IAM & admin" select "Quotas", find the quota metric "GPUs (all regions)" and change that from 0 to 1 to enable the creation of GPU-enabled VMs. This is not an automatic process, there may be a 12-24h wait before this is enabled (you will get email notification).
+
+The `gcloud` CLI can then be used to enable the required APIs for this project to allow Terraform to control it using the service account. Note that some APIs can take a surprising amount of time to initialize.
+
+```bash
+gcloud auth activate-service-account --key-file=USERNAME_gcp_credentials.json
+gcloud config set project PROJECTNAME
+gcloud services enable "cloudresourcemanager.googleapis.com"
+gcloud services enable "serviceusage.googleapis.com"
+gcloud services enable "cloudbilling.googleapis.com"
+```
+
+Additional APIs will be enabled by Terraform. Terraform should now be able to create and manipulate resources in your GCP project.
 
 #### Building the VM with Terraform
 
@@ -71,10 +92,20 @@ The following commands should then create a VM with a K80 GPU on GCP:
 ```bash
 cd gcp
 terraform init
-terraform apply -var 'your_credentials=YOURCREDENTIALSFILE.json' \
+terraform apply -var 'prefix=PROJECTNAME' \
+    -var 'your_credentials=USERNAME_gcp_credentials.json' \
     -var 'azure_pipelines_token=YOUR_AZURE_PIPELINES_PAT_TOKEN' \
     -var 'azure_pipelines_organization=YOUR_AZURE_PIPELINES_ORGANIZATION'
 ```
+
+If you have been using the same directory for a while, you may want to use instead:
+
+```bash
+terraform init -upgrade
+terraform get -update
+```
+
+to download updates to providers and modules.
 
 This will copy your public SSH key from your `~/.ssh/id_rsa.pub` file to the VM to enable passwordless `ssh` access:
 
@@ -142,6 +173,15 @@ terraform apply -refresh=true \
     -var 'azure_pipelines_token=YOUR_AZURE_PIPELINES_PAT_TOKEN' \
     -var 'azure_pipelines_organization=YOUR_AZURE_PIPELINES_ORGANIZATION'
 ```
+
+If you have been using the same directory for a while, you may want to use instead:
+
+```bash
+terraform init -upgrade
+terraform get -update
+```
+
+to download updates to providers and modules.
 
 This will copy your public SSH key from your `~/.ssh/id_rsa.pub` file to the VM to enable passwordless `ssh` access:
 

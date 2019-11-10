@@ -1,8 +1,29 @@
 // Configure the Google Cloud provider
 provider "google" {
   credentials = "${file("${var.your_credentials}")}"
-  project     = "aswf-gpu-build-agent"
+  project     = "${var.prefix}"
   region      = "${var.region}"
+}
+
+// Enable required APIs on our project
+resource "google_project_service" "activate_apis" {
+  count = "${length(var.activate_apis)}"
+  project = "${var.prefix}"
+  service = "${element(var.activate_apis, count.index)}"
+  disable_dependent_services = false
+  disable_on_destroy = false
+}
+
+resource "google_project_service" "api_iam" {
+  project = "${var.prefix}"
+  service = "iam.googleapis.com"
+  disable_dependent_services = true
+}
+
+resource "google_project_service" "api_compute" {
+  project = "${var.prefix}"
+  service = "compute.googleapis.com"
+  disable_dependent_services = true
 }
 
 // Terraform plugin for creating random ids
@@ -12,7 +33,7 @@ resource "random_id" "instance_id" {
 
 // A single Google Cloud Engine instance
 resource "google_compute_instance" "default" {
-  name         = "aswf-gpu-build-${random_id.instance_id.hex}"
+  name         = "${var.prefix}-${random_id.instance_id.hex}"
   machine_type = "${var.machine_type}"
   zone         = "${var.zone}"
   guest_accelerator { 
@@ -50,12 +71,16 @@ resource "google_compute_instance" "default" {
     host        = "${self.network_interface.0.access_config.0.nat_ip}"
   }
   provisioner "remote-exec" {
-    inline = ["sudo apt update && sudo apt -y upgrade && sudo apt install -y python-minimal"]
+    inline = ["sudo apt update && sudo apt -y upgrade && sudo apt -y install python-minimal"]
   }
 
   provisioner "local-exec" {
     command = "ansible-playbook -u ${var.admin_username} -i '${self.network_interface.0.access_config.0.nat_ip},' --private-key '~/.ssh/id_rsa' --ssh-common-args '-o StrictHostKeyChecking=no' --extra-vars 'azure_pipelines_organization=${var.azure_pipelines_organization}' --extra-vars 'azure_pipelines_token=${var.azure_pipelines_token}' ../provision.yml" 
   }
+
+  depends_on = [
+    google_project_service.activate_apis
+  ]
 }
 
 output "public_ip_address" {

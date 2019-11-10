@@ -1,3 +1,7 @@
+variable "prefix" {
+  default = "MYPROJECT"
+}
+
 variable "region" {
   default = "us-west1"
 }
@@ -15,7 +19,7 @@ variable "admin_username" {
 }
 
 variable "your_credentials" {
-  default = "panisset_gcp_credentials.json"
+  default = "USERNAME_gcp_credentials.json"
 }
 
 variable "azure_pipelines_organization" {
@@ -24,4 +28,14 @@ variable "azure_pipelines_organization" {
 
 variable "azure_pipelines_token" {
   default = "YOUR_AZURE_PIPELINES_PAT_TOKEN"
+}
+
+variable "activate_apis" {
+  default = [
+    "cloudresourcemanager.googleapis.com",
+    "cloudbilling.googleapis.com",
+    "iam.googleapis.com",
+    "compute.googleapis.com",
+    "serviceusage.googleapis.com",
+  ]
 }

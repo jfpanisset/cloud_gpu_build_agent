@@ -127,7 +127,7 @@ resource "azurerm_virtual_machine" "main" {
       private_key = "${file("~/.ssh/id_rsa")}"
       host        = "${data.azurerm_public_ip.main.fqdn}"
     }
-    inline = ["sudo apt update && sudo apt -y upgrade && sudo apt install -y python-minimal"]
+    inline = ["sudo apt update && sudo apt -y upgrade && sudo apt -y install python-minimal"]
   }
 
   provisioner "local-exec" {
