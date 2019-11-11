@@ -127,11 +127,11 @@ resource "azurerm_virtual_machine" "main" {
       private_key = "${file("~/.ssh/id_rsa")}"
       host        = "${data.azurerm_public_ip.main.fqdn}"
     }
-    inline = ["sudo apt update && sudo apt -y upgrade && sudo apt -y install python-minimal"]
+    inline = ["sudo apt update && sudo apt -y upgrade"]
   }
 
   provisioner "local-exec" {
-    command = "ansible-playbook -u ${var.admin_username} -i '${data.azurerm_public_ip.main.fqdn},' --private-key '~/.ssh/id_rsa' --ssh-common-args '-o StrictHostKeyChecking=no' --extra-vars 'azure_pipelines_organization=${var.azure_pipelines_organization}' --extra-vars 'azure_pipelines_token=${var.azure_pipelines_token}' ../provision.yml" 
+    command = "ansible-playbook -u ${var.admin_username} -i '${data.azurerm_public_ip.main.fqdn},' --private-key '~/.ssh/id_rsa' --ssh-common-args '-o StrictHostKeyChecking=no' --extra-vars ansible_python_interpreter=/usr/bin/python3 --extra-vars 'azure_pipelines_organization=${var.azure_pipelines_organization}' --extra-vars 'azure_pipelines_token=${var.azure_pipelines_token}' ../provision.yml"
   }
 }
 

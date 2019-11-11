@@ -1,5 +1,5 @@
 ---
-- name: "Configure GCP GPU VM"
+- name: "Configure GPU VM"
   hosts: 'all'
   become: yes
   become_method: sudo
@@ -24,9 +24,45 @@
       upgrade: yes
       update_cache: yes
 
+  - name: Install support for repository access via https
+    apt:
+      name: "{{ packages }}"
+    vars:
+      packages:
+        - apt-transport-https
+        - ca-certificates
+        - curl
+        - gnupg-agent
+        - software-properties-common
+
+  - name: Add an Apt signing key to a specific keyring file
+    apt_key:
+      url: https://download.docker.com/linux/ubuntu/gpg
+      state: present
+
+  - name: Add Stable Docker repository
+    apt_repository:
+      repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+      state: present
+
+  - name: Install Docker CE
+    apt:
+      name: "{{ packages }}"
+    vars:
+      packages:
+        - docker-ce
+        - docker-ce-cli
+        - containerd.io
+
+  - name: Allow Docker access to non-root user
+    user:
+      name: '{{ ansible_user }}'
+      groups: docker
+      append: yes
+
   - name: Install GCC and make
     apt:
-       name: "{{ packages }}"
+      name: "{{ packages }}"
     vars:
       packages:
         - gcc
@@ -77,20 +113,22 @@
       chdir: "~/{{ azure_pipelines_agent_dir}}"
       creates: "~/{{ azure_pipelines_agent_dir}}/.agent"
 
-  # FIXME: hardcoded path
+  - name: Test for service already created
+    shell: "./svc.sh status | grep -q -v -e '^$' -e  'not installed'"
+    register: azure_pipelines_service_installed
+    ignore_errors: true
+    args:
+      chdir: "~{{ ansible_user }}/{{ azure_pipelines_agent_dir }}"
+
   - name: Install Azure Pipelines agent as a service
     command: "./svc.sh install"
     args:
-      chdir: "/home/testadmin/{{ azure_pipelines_agent_dir }}"
+      chdir: "~{{ ansible_user }}/{{ azure_pipelines_agent_dir }}"
+    when:
+      azure_pipelines_service_installed.rc == 1
 
-  # FIXME: hardcoded path
+  # No harm done if already started
   - name: Start the Azure Pipelines agent service
     command: "./svc.sh start"
     args:
-      chdir: "/home/testadmin/{{ azure_pipelines_agent_dir }}"
-
-
-
-
-
- 
+      chdir: "~{{ ansible_user }}/{{ azure_pipelines_agent_dir }}"
