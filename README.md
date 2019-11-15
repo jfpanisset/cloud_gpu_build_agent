@@ -46,7 +46,7 @@ brew install terraform
 ```
 ## Cloud Provider Setup
 
-### Google Cloud Platform Setup
+### Google Cloud Platform (GCP) Setup
 
 This tutorial on [Getting Started with Terraform on Google Cloud Platform](https://cloud.google.com/community/tutorials/getting-started-on-gcp-with-terraform) is a good starting point to create the GCP resources we need with Terraform, as well as [Managing GCP Projects with Terraform](https://cloud.google.com/community/tutorials/managing-gcp-projects-with-terraform).
 
@@ -113,7 +113,7 @@ This will copy your public SSH key from your `~/.ssh/id_rsa.pub` file to the VM 
 ssh testadmin@`terraform output public_ip_address`
 ```
 
-(you can change the name of the admin user in `variables.tf`).
+You can change the name of the admin user in `variables.tf`. On AWS the administrative account is [based on the AMI you are using](https://alestic.com/2014/01/ec2-ssh-username/), for instance for Ubuntu it is `ubuntu`, there does not seem to be a simple way to change that at instance creation time.
 
 ### Microsoft Azure Setup
 
@@ -191,6 +191,58 @@ ssh testadmin@`terraform output public_ip_address`
 ```
 
 (you can change the name of the admin user in `variables.tf`).
+
+### Amazon Web Services (AWS) Setup
+
+To create a suitable AWS EC2 instance (VM), we first need to configure programatic access to AWS, and we can leverage the [aws command line interface](https://aws.amazon.com/cli/) as much as possible.
+
+On macOS, we use the [Homebrew awscli formula](https://formulae.brew.sh/formula/awscli) to install the package:
+
+```bash
+brew install awscli
+```
+
+Assuming you have already created an AWS account and are logged in to the AWS console, the [Your Security Credentials](https://console.aws.amazon.com/iam/home?#/security_credentials) page in the AWS console will let you create an API Access Key to be used by Terraform. This is a shortcut for the sake of illustration: AWS strongly suggests creating a dedicated user under Identity and Access Management (IAM) with a limited set of permissions. Click on "Create New Key" under the "Access keys (access key ID and secret access key)" tab, and then "Download Key File" which will download a file called `rootkey.csv`. Copy this file to the `aws` folder of your copy of this repo, do NOT check it in to any public repository.
+
+As per the Terraform [Getting Started - AWS tutorial](https://learn.hashicorp.com/terraform/getting-started/build):
+
+```bash
+$ aws configure
+AWS Access Key ID [None]: YOUR_ACCESS_KEY_ID
+AWS Secret Access Key [None]: YOUR_SECRET_ACCESS_KEY
+Default region name [None]: westus2
+Default output format [None]:
+```
+
+This will store a copy of the credentials in your `~/.aws/credentials` file under the `default` profile. Other approaches are possible as well, see [Authenticating to AWS with the Credentials File](https://blog.gruntwork.io/authenticating-to-aws-with-the-credentials-file-d16c0fbcbf9e) and [Authenticating to AWS with Environment Variables](https://blog.gruntwork.io/authenticating-to-aws-with-environment-variables-e793d6f6d02e).
+
+You should then be able to run:
+
+```bash
+cd aws
+terraform init
+terraform apply -var 'prefix=PROJECTNAME' \
+    -var 'aws_access_key_id=YOUR_AWS_ACCESS_KEY_ID' \
+    -var 'aws_secret_access_key=YOUR_AWS_SECRET_ACCESS_KEY'
+    -var 'azure_pipelines_token=YOUR_AZURE_PIPELINES_PAT_TOKEN' \
+    -var 'azure_pipelines_organization=YOUR_AZURE_PIPELINES_ORGANIZATION'
+```
+
+The first time you try to run this Terraform code, you may get the following error:
+
+```
+Error launching source instance: PendingVerification: Your request for accessing resources in this region is being validated, and you will not be able to launch additional resources in this region until the validation is complete. We will notify you by email once your request has been validated. While normally resolved within minutes, please allow up to 4 hours for this process to complete. If the issue still persists, please let us know by writing to aws-verification@amazon.com for further assistance.
+```
+
+This may be due to a first time use of a billable resource, and the need to verify the billing information on the AWS account. This should get approved automatically if the AWS account has a valid payment method set up.
+
+You may also get the following error:
+
+```
+Error: Error launching source instance: VcpuLimitExceeded: You have requested more vCPU capacity than your current vCPU limit of 0 allows for the instance bucket that the specified instance type belongs to. Please visit http://aws.amazon.com/contact-us/ec2-request to request an adjustment to this limit.
+```
+
+This requires manual intervention in the AWS console to increase the vCPU limit based on the EC2 instance you are requesting. The following URL should take you directly to the AWS Console to [request a vCPU quota increase for running on-demand P-series instances in the us-west-2 region](https://us-west-2.console.aws.amazon.com/servicequotas/home?region=us-west-2#!/services/ec2/quotas/L-417A185B).
 
 ### Terraform and Ansible for Provisioning
 
