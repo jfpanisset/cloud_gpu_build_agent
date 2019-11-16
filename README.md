@@ -248,6 +248,19 @@ This requires manual intervention in the AWS console to increase the vCPU limit 
 
  [Ansible](https://www.ansible.com/) is used to provision the VM, although there is no official Ansible provisioner for Terraform this can be done using the `remote-exec` and `local-exec` provisioners as per [How to use Ansible with Terraform](https://alex.dzyoba.com/blog/terraform-ansible/.)
 
+ If you are running Ansible on macOS and get an error similar to:
+
+ ```bash
+ objc[2823]: +[__NSPlaceholderDate initialize] may have been in progress in another thread when fork() was called.
+objc[2823]: +[__NSPlaceholderDate initialize] may have been in progress in another thread when fork() was called. We cannot safely call it or ignore it in the fork() child process. Crashing instead. Set a breakpoint on objc_initializeAfterForkError to debug.
+```
+
+you may be running into a [previously reported issue](https://github.com/ansible/ansible/issues/32499): a security update introduced in macOS High Sierra tends to break Python apps which call `fork()`, a potential workaround is to set the environment variable:
+
+```bash
+export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
+```
+
 The `provision.yml` playbook will do the following:
 
 - install gcc and make
@@ -305,7 +318,15 @@ terraform destroy
 
 This functionality does not seem to always work, so you may need to destroy your resources from the GCP or Azure web console.
 
+## NVIDIA Drivers and Containers
 
+Running GPU accelerated containers inside of a Docker container is still in flux, but the situation is rapidly improving. As per the [NVIDIA Container Toolkit project](https://github.com/NVIDIA/nvidia-docker), [Docker 19.03 now includes native support for NVIDIA GPUs](https://github.com/moby/moby/pull/38828). The Ansible recipe in this project installs the `nvidia-container-toolkit` package sets up Docker to allow containers access to the NVIDIA driver and GPU running on the host when using the `--gpus` option, for instance:
 
+```bash
+#### Test nvidia-smi with the latest official CUDA image
+$ docker run --gpus all nvidia/cuda:9.0-base nvidia-smi
+```
 
+should run the `nvidia-smi` utility inside a GPU-enabled container and print information about the GPU on the host.
 
+For CUDA applications it is no longer necessary to install the CUDA toolkit on the host, it only needs to be present inside the container.

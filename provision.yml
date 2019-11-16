@@ -79,6 +79,30 @@
     args:
       creates: /proc/driver/nvidia/version
 
+  - name: Add an Apt signing key for NVIDIA repository
+    apt_key:
+      url: https://nvidia.github.io/nvidia-docker/gpgkey
+      state: present
+
+  - name: Add NVIDIA repositories
+    apt_repository:
+      repo: "{{ item }}"
+      state: present
+    loop: "{{ lookup('url', 'https://nvidia.github.io/nvidia-docker/{{ ansible_distribution|lower }}{{ ansible_distribution_version }}/nvidia-docker.list', wantlist=True) }}"
+
+  - name: Install nvidia-container-toolkit
+    apt:
+      name: "{{ packages }}"
+    vars:
+      packages:
+          - nvidia-container-toolkit
+
+  # Should test first if we actually installed nvidia-container-toolkit
+  - name: Restart Docker after installing nvidia-container-toolkit
+    systemd:
+      state: restarted
+      name: docker
+
   - name: Download Azure Pipelines agent for Linux
     get_url:
       url: "https://vstsagentpackage.azureedge.net/agent/{{ azure_pipelines_agent_version }}/{{ azure_pipelines_agent_filename}}"

@@ -21,6 +21,11 @@ variable "machine_type" {
   default = "p2.xlarge"
 }
 
+// 50GB root volume by default
+variable "root_volume_size" {
+  default = 50
+}
+
 // Ubuntu AMIs on AWS have "ubuntu" as the default admin account
 variable "admin_username" {
   default = "ubuntu"

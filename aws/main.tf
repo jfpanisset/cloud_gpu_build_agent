@@ -115,6 +115,10 @@ resource "aws_instance" "my_instance" {
     device_index         = 0
   }
 
+  root_block_device {
+        volume_size = var.root_volume_size
+  }
+
   provisioner "remote-exec" {
     connection {
       type        = "ssh"
