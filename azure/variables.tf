@@ -6,7 +6,7 @@ variable "location" {
 }
 
 variable "azure_machine_type" {
-  default = "Standard_NC6_Promo"
+  default = "Standard_NV6_Promo"
 }
 variable "azure_linux_publisher" {
   default = "Canonical"

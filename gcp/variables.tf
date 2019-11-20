@@ -14,6 +14,10 @@ variable "machine_type" {
   default = "n1-highmem-2"
 }
 
+variable "gpu_type" {
+  default = "nvidia-tesla-p4-vws"
+}
+
 variable "admin_username" {
   default = "testadmin"
 }

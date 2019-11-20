@@ -1,6 +1,8 @@
 # Azure Pipelines Cloud GPU Build Agent
 
-This small project demonstrates the basics of how to use [HashiCorp Terraform](https://terraform.io) to create a GPU-enabled VM on Google Cloud Platform (gcp) or Microsoft Azure which can then be used to run build or test jobs from Azure Pipelines in the context of the [Academy Software Foundation](https://aswf.io) Continuous Integration framework.
+This small project demonstrates the basics of how to use [HashiCorp Terraform](https://terraform.io) to create a GPU-enabled VM on Google Cloud Platform (gcp), Microsoft Azure or Amazone AWS which can then be used to run build or test jobs from Azure Pipelines in the context of the [Academy Software Foundation](https://aswf.io) Continuous Integration framework. The Terraform code requires version 0.12 or newer of Terraform due to [changes in the variable interpolation syntax](https://www.terraform.io/upgrade-guides/0-12.html#first-class-expressions).
+
+To run hardware accelerated OpenGL on a NVIDIA GPU in a virtual machine, you need a [NVIDIA GRID vGPU license](https://www.nvidia.com/en-us/data-center/virtual-pc-apps/) which can be provided by the Cloud Service Provider. The base K80 GPU typically available on public clouds does not support GRID and will not support OpenGL, only CUDA.
 
 ## Azure Pipelines Setup
 
@@ -169,7 +171,7 @@ The Terraform Azure Resource Manager will let you create a virtual machine using
 ```bash
 cd azure
 terraform init
-terraform apply -refresh=true \
+terraform apply \
     -var 'azure_pipelines_token=YOUR_AZURE_PIPELINES_PAT_TOKEN' \
     -var 'azure_pipelines_organization=YOUR_AZURE_PIPELINES_ORGANIZATION'
 ```

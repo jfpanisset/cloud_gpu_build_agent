@@ -39,7 +39,7 @@ resource "google_compute_instance" "default" {
   machine_type = "${var.machine_type}"
   zone         = "${var.zone}"
   guest_accelerator { 
-    type =  "nvidia-tesla-k80"
+    type =  var.gpu_type
     count = 1
   }
   boot_disk {

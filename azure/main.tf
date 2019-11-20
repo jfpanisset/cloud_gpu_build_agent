@@ -6,8 +6,8 @@ provider "azurerm" {
 
 # Create a resource group
 resource "azurerm_resource_group" "main" {
-  name     = "${var.prefix}-resources"
-  location = "${var.location}"
+  name     = "${var.prefix}-resource_group"
+  location = var.location
 }
 
 # Create a virtual network within the resource group
@@ -15,24 +15,23 @@ resource "azurerm_virtual_network" "main" {
   name                = "${var.prefix}-network"
   address_space       = ["10.0.0.0/16"]
   dns_servers         = ["8.8.8.8", "8.8.4.4"]
-  location            = "${azurerm_resource_group.main.location}"
-  resource_group_name = "${azurerm_resource_group.main.name}"
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
 }
 
 resource "azurerm_subnet" "main" {
   name                 = "${var.prefix}-subnet"
-  resource_group_name  = "${azurerm_resource_group.main.name}"
-  virtual_network_name = "${azurerm_virtual_network.main.name}"
+  resource_group_name  = azurerm_resource_group.main.name
+  virtual_network_name = azurerm_virtual_network.main.name
   address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_public_ip" "main" {
   name                = "${var.prefix}-PublicIp1"
-  location            = "${azurerm_resource_group.main.location}"
-  resource_group_name = "${azurerm_resource_group.main.name}"
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
   allocation_method   = "Dynamic"
-  domain_name_label   = "${var.prefix}"
-
+  domain_name_label   = var.prefix
 
   tags = {
     environment = "main"
@@ -41,8 +40,8 @@ resource "azurerm_public_ip" "main" {
 
 resource "azurerm_network_security_group" "main" {
     name                = "${var.prefix}-NetworkSecurityGroup"
-    location            = "${azurerm_resource_group.main.location}"
-    resource_group_name = "${azurerm_resource_group.main.name}"
+    location            = azurerm_resource_group.main.location
+    resource_group_name = azurerm_resource_group.main.name
 
     security_rule {
         name                       = "SSH"
@@ -62,30 +61,31 @@ resource "azurerm_network_security_group" "main" {
 }
 
 data "azurerm_public_ip" "main" {
-   name                = "${azurerm_public_ip.main.name}"
-   resource_group_name = "${azurerm_resource_group.main.name}"
+   name                = azurerm_public_ip.main.name
+   resource_group_name = azurerm_public_ip.main.resource_group_name
+   depends_on          = [azurerm_public_ip.main]
 }
 
 resource "azurerm_network_interface" "main" {
   name                = "${var.prefix}-nic"
-  location            = "${azurerm_resource_group.main.location}"
-  resource_group_name = "${azurerm_resource_group.main.name}"
-  network_security_group_id = "${azurerm_network_security_group.main.id}"
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
+  network_security_group_id = azurerm_network_security_group.main.id
 
   ip_configuration {
     name                          = "testconfiguration1"
-    subnet_id                     = "${azurerm_subnet.main.id}"
+    subnet_id                     = azurerm_subnet.main.id
     private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = "${azurerm_public_ip.main.id}"
+    public_ip_address_id          = azurerm_public_ip.main.id
   }
 }
 
 resource "azurerm_virtual_machine" "main" {
   name                  = "${var.prefix}-vm"
-  location              = "${azurerm_resource_group.main.location}"
-  resource_group_name   = "${azurerm_resource_group.main.name}"
-  network_interface_ids = ["${azurerm_network_interface.main.id}"]
-  vm_size               = "${var.azure_machine_type}"
+  location              = azurerm_resource_group.main.location
+  resource_group_name   = azurerm_resource_group.main.name
+  network_interface_ids = [azurerm_network_interface.main.id]
+  vm_size               = var.azure_machine_type
 
   # Uncomment this line to delete the OS disk automatically when deleting the VM
   delete_os_disk_on_termination = true
@@ -94,10 +94,10 @@ resource "azurerm_virtual_machine" "main" {
   delete_data_disks_on_termination = true
 
   storage_image_reference {
-    publisher = "${var.azure_linux_publisher}"
-    offer     = "${var.azure_linux_offer}"
-    sku       = "${var.azure_linux_sku}"
-    version   = "${var.azure_linux_version}"
+    publisher = var.azure_linux_publisher
+    offer     = var.azure_linux_offer
+    sku       = var.azure_linux_sku
+    version   = var.azure_linux_version
   }
   storage_os_disk {
     name              = "myosdisk1"
@@ -106,15 +106,15 @@ resource "azurerm_virtual_machine" "main" {
     managed_disk_type = "Standard_LRS"
   }
   os_profile {
-    computer_name  = "${var.azure_linux_hostname}"
-    admin_username = "${var.admin_username}"
-    admin_password = "${var.admin_password}"
+    computer_name  = var.azure_linux_hostname
+    admin_username = var.admin_username
+    admin_password = var.admin_password
   }
    os_profile_linux_config {
     disable_password_authentication = true
     ssh_keys {
       path     = "/home/${var.admin_username}/.ssh/authorized_keys"
-      key_data = "${file("~/.ssh/id_rsa.pub")}"
+      key_data = file("~/.ssh/id_rsa.pub")
     }
   }
   tags = {
@@ -123,9 +123,9 @@ resource "azurerm_virtual_machine" "main" {
   provisioner "remote-exec" {
     connection {
       type        = "ssh"
-      user        = "${var.admin_username}"
-      private_key = "${file("~/.ssh/id_rsa")}"
-      host        = "${data.azurerm_public_ip.main.fqdn}"
+      user        = var.admin_username
+      private_key = file("~/.ssh/id_rsa")
+      host        = data.azurerm_public_ip.main.fqdn
     }
     inline = ["sudo apt update && sudo apt -y upgrade"]
   }
@@ -136,5 +136,5 @@ resource "azurerm_virtual_machine" "main" {
 }
 
 output "public_ip_fqdn" {
-  value = "${data.azurerm_public_ip.main.fqdn}"
+  value = data.azurerm_public_ip.main.fqdn
 }

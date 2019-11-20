@@ -5,8 +5,8 @@
   become_method: sudo
 
   vars:
-    NVIDIA_driver_version_dir: "418.87"
-    NVIDIA_driver_version: "418.87.01"
+    NVIDIA_driver_version_dir: "440.33.01"
+    NVIDIA_driver_version: "440.33.01"
     NVIDIA_driver_filename: "NVIDIA-Linux-x86_64-{{ NVIDIA_driver_version }}.run"
     azure_pipelines_agent_version: "2.160.0"
     azure_pipelines_agent_filename: "vsts-agent-linux-x64-{{ azure_pipelines_agent_version }}.tar.gz"
@@ -60,13 +60,20 @@
       groups: docker
       append: yes
 
-  - name: Install GCC and make
+  # Need GCC and Make to install NVIDIA driver, xorg/gdm3 for OpenGL apps
+  # FIXME: hard coded NVIDIA driver for now
+  - name: Install Xorg, GCC and make
     apt:
       name: "{{ packages }}"
     vars:
       packages:
         - gcc
         - make
+        - mesa-utils
+        - xorg
+#        - gdm3
+#        - nvidia-driver-435
+
 
   - name: Download NVIDIA driver
     get_url:
@@ -74,12 +81,17 @@
       dest: "/tmp/{{ NVIDIA_driver_filename}}"
       mode: '0755'
 
-  - name: Install the NVIDIA driver in silent mode, will not upgrade a previous version (you need fancier check)
-    command: "/tmp/{{ NVIDIA_driver_filename }} -s"
-    args:
-      creates: /proc/driver/nvidia/version
+#  - name: Install the NVIDIA driver in silent mode, will not upgrade a previous version (you need fancier check)
+#    command: "/tmp/{{ NVIDIA_driver_filename }} -s"
+#    args:
+#      creates: /proc/driver/nvidia/version
 
-  - name: Add an Apt signing key for NVIDIA repository
+#  - name: Start Xorg
+#    systemd:
+#      state: started
+#      name: gdm3
+
+  - name: Add an Apt signing key for NVIDIA Docker container repository
     apt_key:
       url: https://nvidia.github.io/nvidia-docker/gpgkey
       state: present
