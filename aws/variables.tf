@@ -1,6 +1,11 @@
 variable "prefix" {
   default = "jf-aswf"
 }
+
+variable "cloud_provider" {
+  default = "aws"
+}
+
 variable "aws_region" {
   default = "us-west-2"
 }

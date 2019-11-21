@@ -5,16 +5,22 @@
   become_method: sudo
 
   vars:
-    NVIDIA_driver_version_dir: "440.33.01"
-    NVIDIA_driver_version: "440.33.01"
-    NVIDIA_driver_filename: "NVIDIA-Linux-x86_64-{{ NVIDIA_driver_version }}.run"
     azure_pipelines_agent_version: "2.160.0"
     azure_pipelines_agent_filename: "vsts-agent-linux-x64-{{ azure_pipelines_agent_version }}.tar.gz"
     azure_pipelines_agent_dir: "myagent"
     azure_pipelines_organization: "YOUR_AZURE_PIPELINES_ORGANIZATION"
     azure_pipelines_token: "YOUR_AZURE_PIPELINES_PAT_TOKEN"
     azure_pipelines_pool: "GPU Ubuntu 18.04"
-    
+
+    # Pass in 'cloud_provider' as variable to pick the pre-licensed GRID driver to install
+    nvidia_grid_driver_source:
+      # See https://docs.microsoft.com/en-us/azure/virtual-machines/linux/n-series-driver-setup
+      # Azure doesn't currently allow you to specify the GRID driver you want, you get latest available
+      azure: "https://go.microsoft.com/fwlink/?linkid=874272"
+      # See https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/install-nvidia-driver.html
+      aws: "http://ec2-linux-nvidia-drivers.s3.amazonaws.com/<path-to-file>"
+      # See https://cloud.google.com/compute/docs/gpus/add-gpus#installing_grid_drivers_for_virtual_workstations
+      gcp: "https://storage.googleapis.com/nvidia-drivers-us-public/GRID/GRID9.1/NVIDIA-Linux-x86_64-430.46-grid.run"
 
  # roles:
     
@@ -61,7 +67,6 @@
       append: yes
 
   # Need GCC and Make to install NVIDIA driver, xorg/gdm3 for OpenGL apps
-  # FIXME: hard coded NVIDIA driver for now
   - name: Install Xorg, GCC and make
     apt:
       name: "{{ packages }}"
@@ -71,25 +76,34 @@
         - make
         - mesa-utils
         - xorg
-#        - gdm3
-#        - nvidia-driver-435
+        - daemon
 
-
-  - name: Download NVIDIA driver
+  - name: Download NVIDIA GRID driver for the current cloud provider
     get_url:
-      url: "http://us.download.nvidia.com/tesla/{{ NVIDIA_driver_version_dir}}/{{ NVIDIA_driver_filename}}"
-      dest: "/tmp/{{ NVIDIA_driver_filename}}"
+      url: "{{ nvidia_grid_driver_source[cloud_provider] }}"
+      dest: "/tmp/NVIDIA_Driver_GRID.run"
       mode: '0755'
 
-#  - name: Install the NVIDIA driver in silent mode, will not upgrade a previous version (you need fancier check)
-#    command: "/tmp/{{ NVIDIA_driver_filename }} -s"
-#    args:
-#      creates: /proc/driver/nvidia/version
+  - name: Install the NVIDIA driver in silent mode, will not upgrade a previous version (you need fancier check)
+    command: "/tmp/NVIDIA_Driver_GRID.run -s"
+    args:
+      creates: /proc/driver/nvidia/version
 
-#  - name: Start Xorg
-#    systemd:
-#      state: started
-#      name: gdm3
+  # FIXME: no M60 on GCP
+  - name: Xorg config magic to get NVIDIA hardware OpenGL
+    copy:
+      dest: /usr/share/X11/xorg.conf.d/20-nvidia.conf
+      content: |
+        Section "Device"
+          Identifier "Nvidia Card"
+          Driver "nvidia"
+          VendorName "NVIDIA Corporation"
+          BoardName "Tesla M60"
+        EndSection
+
+  # FIXME: won't survive reboot, needs startup script
+  - name: Start Xorg
+    shell: daemon /usr/bin/X11/X
 
   - name: Add an Apt signing key for NVIDIA Docker container repository
     apt_key:
@@ -143,6 +157,7 @@
       --token {{ azure_pipelines_token }} 
       --pool '{{ azure_pipelines_pool }}' 
       --agent {{ ansible_hostname }} 
+      --replace
       --acceptTeeEula"
     become: no
     args:

@@ -2,7 +2,12 @@
 
 This small project demonstrates the basics of how to use [HashiCorp Terraform](https://terraform.io) to create a GPU-enabled VM on Google Cloud Platform (gcp), Microsoft Azure or Amazone AWS which can then be used to run build or test jobs from Azure Pipelines in the context of the [Academy Software Foundation](https://aswf.io) Continuous Integration framework. The Terraform code requires version 0.12 or newer of Terraform due to [changes in the variable interpolation syntax](https://www.terraform.io/upgrade-guides/0-12.html#first-class-expressions).
 
-To run hardware accelerated OpenGL on a NVIDIA GPU in a virtual machine, you need a [NVIDIA GRID vGPU license](https://www.nvidia.com/en-us/data-center/virtual-pc-apps/) which can be provided by the Cloud Service Provider. The base K80 GPU typically available on public clouds does not support GRID and will not support OpenGL, only CUDA.
+To run hardware accelerated OpenGL on a NVIDIA GPU in a virtual machine, you need a [NVIDIA GRID vGPU license](https://www.nvidia.com/en-us/data-center/virtual-pc-apps/) which can be provided by the Cloud Service Provider. The base K80 GPU typically available on public clouds does not support GRID and will not support OpenGL, only CUDA. A GPU which supports GRID licensing is required, Azure offers the M60 on its NV series of VMs, Amazon on its `g3.xlarge` instances, and GCP offers the P4. Instructions on how to obtain and install a cloud provider specific pre-licensed NVIDIA driver are available at:
+
+- Azure: [Install NVIDIA GPU drivers on N-Series VMs running Linux](https://docs.microsoft.com/en-us/azure/virtual-machines/linux/n-series-driver-setup)
+- AWS: [Installing the NVIDIA Driver on Linux Instances](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/install-nvidia-driver.html)
+- GCP: [Installing GRID drivers for virtual workstations](https://cloud.google.com/compute/docs/gpus/add-gpus#installing_grid_drivers_for_virtual_workstations)
+
 
 ## Azure Pipelines Setup
 

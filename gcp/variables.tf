@@ -2,6 +2,10 @@ variable "prefix" {
   default = "MYPROJECT"
 }
 
+variable "cloud_provider" {
+  default = "gcp"
+}
+
 variable "region" {
   default = "us-west1"
 }
@@ -18,8 +22,9 @@ variable "gpu_type" {
   default = "nvidia-tesla-p4-vws"
 }
 
+# The default on AWS, might as well make that the default everywhere
 variable "admin_username" {
-  default = "testadmin"
+  default = "ubuntu"
 }
 
 variable "your_credentials" {

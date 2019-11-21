@@ -1,6 +1,11 @@
 variable "prefix" {
   default = "jf-aswf"
 }
+
+variable "cloud_provider" {
+  default = "azure"
+}
+
 variable "location" {
   default = "westus2"
 }
@@ -23,8 +28,10 @@ variable "azure_linux_version" {
 variable "azure_linux_hostname" {
   default = "jf-aswf-azlinux"
 }
+
+# The default on AWS, might as well make that the default everywhere
 variable "admin_username" {
-  default = "testadmin"
+  default = "ubuntu"
 }
 
 variable "admin_password" {
