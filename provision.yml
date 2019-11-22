@@ -8,8 +8,8 @@
     azure_pipelines_agent_version: "2.160.0"
     azure_pipelines_agent_filename: "vsts-agent-linux-x64-{{ azure_pipelines_agent_version }}.tar.gz"
     azure_pipelines_agent_dir: "myagent"
-    azure_pipelines_organization: "YOUR_AZURE_PIPELINES_ORGANIZATION"
-    azure_pipelines_token: "YOUR_AZURE_PIPELINES_PAT_TOKEN"
+    azure_pipelines_organization: "{{ lookup('env','AZURE_DEVOPS_ORGANIZATION') }}"
+    azure_pipelines_token: "{{ lookup('env','AZURE_DEVOPS_PAT_TOKEN') }}"
     azure_pipelines_pool: "GPU Ubuntu 18.04"
 
     # Pass in 'cloud_provider' as variable to pick the pre-licensed GRID driver to install
@@ -160,6 +160,7 @@
       --replace
       --acceptTeeEula"
     become: no
+    no_log: True
     args:
       chdir: "~/{{ azure_pipelines_agent_dir}}"
       creates: "~/{{ azure_pipelines_agent_dir}}/.agent"

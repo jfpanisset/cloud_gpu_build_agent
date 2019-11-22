@@ -36,10 +36,3 @@ variable "admin_username" {
   default = "ubuntu"
 }
 
-variable "azure_pipelines_organization" {
-  default = "YOUR_AZURE_PIPELINES_ORGANIZATION"
-}
-
-variable "azure_pipelines_token" {
-  default = "YOUR_AZURE_PIPELINES_PAT_TOKEN"
-}

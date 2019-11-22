@@ -79,7 +79,7 @@ resource "google_compute_instance" "default" {
   // Ubuntu 18.04 minimal install doesn't have Python 2 by default, and "python-minimal" package seems
   // to have gone MIA. Make sure Ansible uses Python 3 regardless of what's installed on the controller.
   provisioner "local-exec" {
-    command = "ansible-playbook -u ${var.admin_username} -i '${self.network_interface.0.access_config.0.nat_ip},' --private-key '~/.ssh/id_rsa' --ssh-common-args '-o StrictHostKeyChecking=no' --extra-vars ansible_python_interpreter=/usr/bin/python3 --extra-vars 'cloud_provider=${var.cloud_provider}' --extra-vars 'azure_pipelines_organization=${var.azure_pipelines_organization}' --extra-vars 'azure_pipelines_token=${var.azure_pipelines_token}' ../provision.yml" 
+    command = "ansible-playbook -u ${var.admin_username} -i '${self.network_interface.0.access_config.0.nat_ip},' --private-key '~/.ssh/id_rsa' --ssh-common-args '-o StrictHostKeyChecking=no' --extra-vars ansible_python_interpreter=/usr/bin/python3 --extra-vars 'cloud_provider=${var.cloud_provider}' ../provision.yml"
   }
 
   depends_on = [

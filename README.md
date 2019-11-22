@@ -44,6 +44,33 @@ to force a job to run on your custom build agent from your custom agent pool ins
 
 ## Local Setup
 
+### Setting Environment Variables
+
+In a CI environment it is generally preferable to pass "secrets" as environment variables: command line parameters typically end up recorded in log files, and you definitely don't want to store secrets in files that will end up in your public code repository. If this workflow is automated, you can store these secrets using using the secrets storage functionality of the CI system. If running this manually, in the shell from where you will be calling Terraform, the following environment variables are used to pass the Azure DevOps project and Personal Access Token to the Ansible provisioning script:
+
+```bash
+export AZURE_DEVOPS_ORGANIZATION=my_azdevops_org
+export AZURE_DEVOPS_PAT_TOKEN=theverylongazdevopspatstring
+```
+
+If you are running on macOS, you will probably need to set the following to work around an [issue with Ansible and Python in recent macOS versions](#terraform-and-ansible-for-provisioning):
+
+```bash
+export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
+```
+
+Finally, you will need to set environment variables specific to the cloud service you are using (see additional details in the sections on each cloud provider). A Terraform variable called `foo` will have its value set to `bar` by an environemnt variable called `TF_VAR_FOO` with value `bar`, you could also use the command line option `-var foo=bar` to `terraform apply`.
+
+- Google GCP
+        FIXME
+- Azure
+        export ARM_CLIENT_ID="00000000-0000-0000-0000-000000000000"
+        export ARM_CLIENT_SECRET="00000000-0000-0000-0000-000000000000"
+        export ARM_SUBSCRIPTION_ID="00000000-0000-0000-0000-000000000000"
+        export ARM_TENANT_ID="00000000-0000-0000-0000-000000000000"
+- Amazon AWS
+        FIXME
+
 ### Install Terraform
 
 On your local machine in this repository you should install Terraform, on Mac you can do this via [HomeBrew](https://brew.sh/)
@@ -100,9 +127,7 @@ The following commands should then create a VM with a P4 GPU on GCP:
 cd gcp
 terraform init
 terraform apply -var 'prefix=PROJECTNAME' \
-    -var 'your_credentials=USERNAME_gcp_credentials.json' \
-    -var 'azure_pipelines_token=YOUR_AZURE_PIPELINES_PAT_TOKEN' \
-    -var 'azure_pipelines_organization=YOUR_AZURE_PIPELINES_ORGANIZATION'
+    -var 'your_credentials=USERNAME_gcp_credentials.json'
 ```
 
 If you have been using the same directory for a while, you may want to use instead:
@@ -171,14 +196,12 @@ export ARM_SUBSCRIPTION_ID="00000000-0000-0000-0000-000000000000"
 export ARM_TENANT_ID="00000000-0000-0000-0000-000000000000"
 ```
 
-The Terraform Azure Resource Manager will let you create a virtual machine using the 
+The Terraform Azure Resource Manager will let you create a virtual machine using the following commands:
 
 ```bash
 cd azure
 terraform init
-terraform apply \
-    -var 'azure_pipelines_token=YOUR_AZURE_PIPELINES_PAT_TOKEN' \
-    -var 'azure_pipelines_organization=YOUR_AZURE_PIPELINES_ORGANIZATION'
+terraform apply
 ```
 
 If you have been using the same directory for a while, you may want to use instead:
@@ -231,8 +254,6 @@ terraform init
 terraform apply -var 'prefix=PROJECTNAME' \
     -var 'aws_access_key_id=YOUR_AWS_ACCESS_KEY_ID' \
     -var 'aws_secret_access_key=YOUR_AWS_SECRET_ACCESS_KEY'
-    -var 'azure_pipelines_token=YOUR_AZURE_PIPELINES_PAT_TOKEN' \
-    -var 'azure_pipelines_organization=YOUR_AZURE_PIPELINES_ORGANIZATION'
 ```
 
 The first time you try to run this Terraform code, you may get the following error:

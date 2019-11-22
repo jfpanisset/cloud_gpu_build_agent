@@ -130,7 +130,7 @@ resource "aws_instance" "my_instance" {
   }
 
   provisioner "local-exec" {
-    command = "ansible-playbook -u ${var.admin_username} -i '${self.public_ip},' --private-key '~/.ssh/id_rsa' --ssh-common-args '-o StrictHostKeyChecking=no' --extra-vars ansible_python_interpreter=/usr/bin/python3 --extra-vars 'cloud_provider=${var.cloud_provider}' --extra-vars 'azure_pipelines_organization=${var.azure_pipelines_organization}' --extra-vars 'azure_pipelines_token=${var.azure_pipelines_token}' ../provision.yml"
+    command = "ansible-playbook -u ${var.admin_username} -i '${self.public_ip},' --private-key '~/.ssh/id_rsa' --ssh-common-args '-o StrictHostKeyChecking=no' --extra-vars ansible_python_interpreter=/usr/bin/python3 --extra-vars 'cloud_provider=${var.cloud_provider}' ../provision.yml"
   }
 
   tags = {
