@@ -23,7 +23,7 @@ variable "aws_availability_zone" {
 }
 
 variable "machine_type" {
-  default = "g3.xlarge"
+  default = "g3s.xlarge"
 }
 
 // 50GB root volume by default

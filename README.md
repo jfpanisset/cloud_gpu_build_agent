@@ -11,7 +11,7 @@ To run hardware accelerated OpenGL on a NVIDIA GPU in a virtual machine, you nee
 
 ## Azure Pipelines Setup
 
-### Create a Personal Acess Token in Azure Pipelines
+### Create a Personal Access Token in Azure Pipelines
 
 In Azure Pipelines you will need to create a Personal Access Token (PAT) to allow the agent to register itself as available for GPU builds and tests. Detailed instructions at [Self-hosted Linux agents](https://docs.microsoft.com/en-us/azure/devops/pipelines/agents/v2-linux?view=azure-devops) but in summary:
 
@@ -94,7 +94,7 @@ Additional APIs will be enabled by Terraform. Terraform should now be able to cr
 
 #### Building the VM with Terraform
 
-The following commands should then create a VM with a K80 GPU on GCP:
+The following commands should then create a VM with a P4 GPU on GCP:
 
 ```bash
 cd gcp
@@ -249,7 +249,7 @@ You may also get the following error:
 Error: Error launching source instance: VcpuLimitExceeded: You have requested more vCPU capacity than your current vCPU limit of 0 allows for the instance bucket that the specified instance type belongs to. Please visit http://aws.amazon.com/contact-us/ec2-request to request an adjustment to this limit.
 ```
 
-This requires manual intervention in the AWS console to increase the vCPU limit based on the EC2 instance you are requesting. The following URL should take you directly to the AWS Console to [request a vCPU quota increase for running on-demand P-series instances in the us-west-2 region](https://us-west-2.console.aws.amazon.com/servicequotas/home?region=us-west-2#!/services/ec2/quotas/L-417A185B).
+This requires manual intervention in the AWS console to increase the vCPU limit based on the EC2 instance you are requesting. The following URL should take you directly to the AWS Console to [request a vCPU quota increase for running on-demand g3s-series instances in the us-west-2 region](https://us-west-2.console.aws.amazon.com/servicequotas/home?region=us-west-2#!/services/ec2/quotas/L-9675FDCD). The limit increases are per instance type, make sure to request the increase for the correct ype.
 
 ### Terraform and Ansible for Provisioning
 

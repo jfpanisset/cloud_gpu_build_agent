@@ -18,7 +18,7 @@
       # Azure doesn't currently allow you to specify the GRID driver you want, you get latest available
       azure: "https://go.microsoft.com/fwlink/?linkid=874272"
       # See https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/install-nvidia-driver.html
-      aws: "http://ec2-linux-nvidia-drivers.s3.amazonaws.com/<path-to-file>"
+      aws: "http://ec2-linux-nvidia-drivers.s3.amazonaws.com/grid-9.1/NVIDIA-Linux-x86_64-430.46-grid.run"
       # See https://cloud.google.com/compute/docs/gpus/add-gpus#installing_grid_drivers_for_virtual_workstations
       gcp: "https://storage.googleapis.com/nvidia-drivers-us-public/GRID/GRID9.1/NVIDIA-Linux-x86_64-430.46-grid.run"
 

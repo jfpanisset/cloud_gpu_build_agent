@@ -102,7 +102,7 @@ data "aws_ami" "ubuntu" {
 
 resource "aws_key_pair" "my_key_pair" {
   key_name = var.admin_username
-  public_key = "${file("~/.ssh/id_rsa.pub")}"
+  public_key = file("~/.ssh/id_rsa.pub")
 }
 
 resource "aws_instance" "my_instance" {
@@ -123,8 +123,8 @@ resource "aws_instance" "my_instance" {
     connection {
       type        = "ssh"
       user        = var.admin_username
-      private_key = "${file("~/.ssh/id_rsa")}"
-      host        = "${self.public_ip}"
+      private_key = file("~/.ssh/id_rsa")
+      host        = self.public_ip
     }
     inline = ["sudo apt update && sudo apt -y upgrade"]
   }

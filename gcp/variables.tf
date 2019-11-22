@@ -10,14 +10,16 @@ variable "region" {
   default = "us-west1"
 }
 
+# P4 GPUs not available in us-west1
 variable "zone" {
-  default = "us-west1-b"
+  default = "us-west2-b"
 }
 
 variable "machine_type" {
   default = "n1-highmem-2"
 }
 
+# Not clear if this should be nvidia-tesla-p4-vws
 variable "gpu_type" {
   default = "nvidia-tesla-p4-vws"
 }

@@ -1,28 +1,28 @@
 // Configure the Google Cloud provider
 provider "google" {
-  credentials = "${file("${var.your_credentials}")}"
-  project     = "${var.prefix}"
-  region      = "${var.region}"
+  credentials = file("${var.your_credentials}")
+  project     = var.prefix
+  region      = var.region
 }
 
 // Enable required APIs on our project
 resource "google_project_service" "activate_apis" {
-  count = "${length(var.activate_apis)}"
-  project = "${var.prefix}"
-  service = "${element(var.activate_apis, count.index)}"
+  count = length(var.activate_apis)
+  project = var.prefix
+  service = element(var.activate_apis, count.index)
   disable_dependent_services = false
   disable_on_destroy = false
 }
 
 resource "google_project_service" "api_iam" {
-  project = "${var.prefix}"
+  project = var.prefix
   service = "iam.googleapis.com"
   disable_dependent_services = false
   disable_on_destroy = false
 }
 
 resource "google_project_service" "api_compute" {
-  project = "${var.prefix}"
+  project = var.prefix
   service = "compute.googleapis.com"
   disable_dependent_services = false
   disable_on_destroy = false
@@ -36,8 +36,8 @@ resource "random_id" "instance_id" {
 // A single Google Cloud Engine instance
 resource "google_compute_instance" "default" {
   name         = "${var.prefix}-${random_id.instance_id.hex}"
-  machine_type = "${var.machine_type}"
-  zone         = "${var.zone}"
+  machine_type = var.machine_type
+  zone         = var.zone
   guest_accelerator { 
     type =  var.gpu_type
     count = 1
@@ -68,9 +68,9 @@ resource "google_compute_instance" "default" {
 
   connection {
     type        = "ssh"
-    user        = "${var.admin_username}"
-    private_key = "${file("~/.ssh/id_rsa")}"
-    host        = "${self.network_interface.0.access_config.0.nat_ip}"
+    user        = var.admin_username
+    private_key = file("~/.ssh/id_rsa")
+    host        = self.network_interface.0.access_config.0.nat_ip
   }
   provisioner "remote-exec" {
     inline = ["sudo apt update && sudo apt -y upgrade"]
