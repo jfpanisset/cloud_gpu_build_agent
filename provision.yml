@@ -91,7 +91,7 @@
     args:
       creates: /proc/driver/nvidia/version
 
-  # FIXME: no M60 on GCP
+  # BoardName doesn't seem to matter much
   - name: Xorg config magic to get NVIDIA hardware OpenGL
     copy:
       dest: /usr/share/X11/xorg.conf.d/20-nvidia.conf
@@ -103,16 +103,31 @@
           BoardName "Tesla M60"
         EndSection
 
-  # FIXME: won't survive reboot, needs startup script
+  # rc.local still supported as a systemd service in Ubuntu 18.04
+  - name: Xorg startup script
+    copy:
+      dest: /etc/rc.local
+      mode: '0755'
+      owner: root
+      group: root
+      content: |
+        #!/bin/bash
+        /usr/bin/X11/X &
+        exit 0
+
+  # start Xorg
   - name: Start Xorg
-    shell: daemon /usr/bin/X11/X
+    systemd:
+      enabled: True
+      state: started
+      name: rc-local
 
   - name: Add an Apt signing key for NVIDIA Docker container repository
     apt_key:
       url: https://nvidia.github.io/nvidia-docker/gpgkey
       state: present
 
-  - name: Add NVIDIA repositories
+  - name: Add NVIDIA container repositories
     apt_repository:
       repo: "{{ item }}"
       state: present
