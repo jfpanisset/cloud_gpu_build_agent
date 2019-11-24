@@ -1,7 +1,4 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
+# Demonstrate that OpenGL is available when building inside a container
 
 trigger:
 - master
@@ -10,8 +7,11 @@ jobs:
 - job: Linux
   pool:
     name: 'GPU Ubuntu 18.04'
+  container:
+    image: aswftesting/ci-ocio:2019.1
+    options: --gpus all
 
   steps:
-  - script: nvidia-smi
+  - script: DISPLAY=:0.0 glxinfo
     displayName: 'Run a one-line script'
 
