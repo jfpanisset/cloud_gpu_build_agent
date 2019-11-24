@@ -15,8 +15,10 @@
     # Pass in 'cloud_provider' as variable to pick the pre-licensed GRID driver to install
     nvidia_grid_driver_source:
       # See https://docs.microsoft.com/en-us/azure/virtual-machines/linux/n-series-driver-setup
-      # Azure doesn't currently allow you to specify the GRID driver you want, you get latest available
-      azure: "https://go.microsoft.com/fwlink/?linkid=874272"
+      # and https://github.com/Azure/azhpc-extensions/blob/master/NvidiaGPU/resources.json for direct
+      # locations of pre-licensed GRID driver. The URL https://go.microsoft.com/fwlink/?linkid=874272
+      # provides the "latest" driver available but we need more control.
+      azure: "https://download.microsoft.com/download/1/a/5/1a537cae-5b52-4348-acd2-2f210fc412b0/NVIDIA-Linux-x86_64-430.46-grid.run"
       # See https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/install-nvidia-driver.html
       aws: "http://ec2-linux-nvidia-drivers.s3.amazonaws.com/grid-9.1/NVIDIA-Linux-x86_64-430.46-grid.run"
       # See https://cloud.google.com/compute/docs/gpus/add-gpus#installing_grid_drivers_for_virtual_workstations

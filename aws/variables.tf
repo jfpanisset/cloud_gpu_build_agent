@@ -10,10 +10,14 @@ variable "aws_region" {
   default = "us-west-2"
 }
 
+// Prefer setting via TF_VAR_aws_access_key_id environment variable to avoid
+// command line parameters ending up in CI logs
 variable "aws_access_key_id" {
   default = "YOUR_AWS_ACCESS_KEY"
 }
 
+// Prefer setting via TF_VAR_aws_secret_access_key environment variable to avoid
+// command line parameters ending up in CI logs
 variable "aws_secret_access_key" {
   default = "YOUR_AWS_SECRET_KEY"
 }

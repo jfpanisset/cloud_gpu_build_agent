@@ -59,7 +59,7 @@ If you are running on macOS, you will probably need to set the following to work
 export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
 ```
 
-Finally, you will need to set environment variables specific to the cloud service you are using (see additional details in the sections on each cloud provider). A Terraform variable called `foo` will have its value set to `bar` by an environemnt variable called `TF_VAR_FOO` with value `bar`, you could also use the command line option `-var foo=bar` to `terraform apply`.
+Finally, you will need to set environment variables specific to the cloud service you are using (see additional details in the sections on each cloud provider). A Terraform variable called `foo` will have its value set to `bar` by an environment variable called `TF_VAR_foo` with value `bar`, you could also use the command line option `-var foo=bar` to `terraform apply`.
 
 - Google GCP
         FIXME
@@ -69,7 +69,8 @@ Finally, you will need to set environment variables specific to the cloud servic
         export ARM_SUBSCRIPTION_ID="00000000-0000-0000-0000-000000000000"
         export ARM_TENANT_ID="00000000-0000-0000-0000-000000000000"
 - Amazon AWS
-        FIXME
+        export TF_VAR_aws_access_key_id=XXXXXX
+        export TF_VAR_aws_secret_access_key=XXXXXX
 
 ### Install Terraform
 
@@ -244,16 +245,19 @@ Default region name [None]: westus2
 Default output format [None]:
 ```
 
-This will store a copy of the credentials in your `~/.aws/credentials` file under the `default` profile. Other approaches are possible as well, see [Authenticating to AWS with the Credentials File](https://blog.gruntwork.io/authenticating-to-aws-with-the-credentials-file-d16c0fbcbf9e) and [Authenticating to AWS with Environment Variables](https://blog.gruntwork.io/authenticating-to-aws-with-environment-variables-e793d6f6d02e).
+This will store a copy of the credentials in your `~/.aws/credentials` file under the `default` profile. Other approaches are possible as well, see [Authenticating to AWS with the Credentials File](https://blog.gruntwork.io/authenticating-to-aws-with-the-credentials-file-d16c0fbcbf9e) and [Authenticating to AWS with Environment Variables](https://blog.gruntwork.io/authenticating-to-aws-with-environment-variables-e793d6f6d02e). Set the following environment variables to pass the credentials to Terraform:
+
+```bash
+export TF_VAR_aws_access_key_id=XXXXXX
+export TF_VAR_aws_secret_access_key=XXXXXX
+```
 
 You should then be able to run:
 
 ```bash
 cd aws
 terraform init
-terraform apply -var 'prefix=PROJECTNAME' \
-    -var 'aws_access_key_id=YOUR_AWS_ACCESS_KEY_ID' \
-    -var 'aws_secret_access_key=YOUR_AWS_SECRET_ACCESS_KEY'
+terraform apply -var 'prefix=PROJECTNAME'
 ```
 
 The first time you try to run this Terraform code, you may get the following error:
