@@ -9,7 +9,7 @@ jobs:
     name: 'GPU Ubuntu 18.04'
   container:
     image: aswftesting/ci-ocio:2019.1
-    options: --gpus all
+    options: --gpus all -v /tmp/.X11-unix:/tmp/.X11-unix
 
   steps:
   - script: DISPLAY=:0.0 glxinfo
