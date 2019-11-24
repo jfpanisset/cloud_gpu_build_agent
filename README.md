@@ -22,7 +22,7 @@ In Azure Pipelines you will need to create a Personal Access Token (PAT) to allo
 
 Once the token is generated save it somewhere safe, you will need it when installing the agent on the build VM.
 
-### Create a Agent Pool in Azure Pipelines
+### Create an Agent Pool in Azure Pipelines
 
 In Azure Pipelines go to:
 
@@ -40,7 +40,9 @@ jobs:
     name: 'GPU Ubuntu 18.04'
 ```
 
-to force a job to run on your custom build agent from your custom agent pool instead of using the pre-defined agent pools provided by Azure Pipelines.
+to force a job to run on your custom build agent from your custom agent pool instead of using the pre-defined (Microsoft hosted) agent pools provided by Azure Pipelines. It is also possible to create an agent pool at the organization level, when creating the agent pool at the project level you will have the option to link an existing agent pool.
+
+Unfortunately the `az pipelines pool` currently does not support creating agent pools, so this step cannot be automated without resorting to using the Azure DevOps REST API.
 
 ## Local Setup
 
