@@ -6,6 +6,7 @@
 # - robust checking that the GPU agent has been destroyed (don't run the meter!)
 # - a better mechanism for managing the Terraform tfstate file
 # - allow the GPU builder to stick around for a few minutes, don't always destroy it
+# - correctly deregister the GPU build agent from the pool before destroying it
 
 trigger:
 - master
@@ -17,10 +18,11 @@ stages:
   jobs:
     - job: GPUCreateTerraform
       steps:
-      - script:
+      - script: |
           cd azure
           terraform init
           terraform apply
+        displayName: 'Terraform builds the GPU build agent on Azure'
         env:
           ARM_CLIENT_ID: $(ARM_CLIENT_ID)
           ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
@@ -39,8 +41,11 @@ stages:
         image: aswftesting/ci-ocio:2019.1
         options: --gpus all -v /tmp/.X11-unix:/tmp/.X11-unix
       steps:
-        - script: DISPLAY=:0.0 glxinfo
-          displayName: 'Run a one-line script'
+        - script: |
+            glxinfo
+          displayName: 'Demonstrate GPU accelerated X visuals'
+          env:
+            DISPLAY: 0.0
 
 - stage: GPUDestroy
   pool:
@@ -52,9 +57,10 @@ stages:
         inputs:
           artifact: GPU_agent_tfstate
           path: $(Build.SourcesDirectory)/azure
-      - script:
+      - script: |
           cd azure
           terraform destroy
+        displayName: 'Terraform destroys the GPU build agent on Azure'
         env:
           ARM_CLIENT_ID: $(ARM_CLIENT_ID)
           ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
