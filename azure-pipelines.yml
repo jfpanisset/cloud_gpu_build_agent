@@ -42,7 +42,7 @@ stages:
       - script: |
           cd azure
           terraform init
-          terraform apply
+          terraform apply -auto-approve
         displayName: 'Terraform builds the GPU build agent on Azure'
         env:
           ARM_CLIENT_ID: $(ARM_CLIENT_ID)
