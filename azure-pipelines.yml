@@ -30,14 +30,14 @@ stages:
         inputs:
           secureFile: id_rsa
       - script: |
-          mkdir $(Agent.HomeDirectory)/.ssh
-          chmod 700 $(Agent.HomeDirectory)/.ssh
-          sudo cp $(ssh_private_key.secureFilePath) $(Agent.HomeDirectory)/.ssh/id_rsa
-          sudo cp $(ssh_public_key.secureFilePath) $(Agent.HomeDirectory)/.ssh/id_rsa.pub
-          sudo chown $(id -u):$(id -g) $(Agent.HomeDirectory)/.ssh/id_rsa
-          sudo chown $(id -u):$(id -g) $(Agent.HomeDirectory)/.ssh/id_rsa.pub
-          chmod 600 $(Agent.HomeDirectory)/.ssh/id_rsa
-          chmod 644 $(Agent.HomeDirectory)/.ssh/id_rsa.pub
+          mkdir ~/.ssh
+          chmod 700 ~/.ssh
+          sudo cp $(ssh_private_key.secureFilePath) ~/.ssh/id_rsa
+          sudo cp $(ssh_public_key.secureFilePath) ~/.ssh/id_rsa.pub
+          sudo chown $(id -u):$(id -g) ~/.ssh/id_rsa
+          sudo chown $(id -u):$(id -g) ~/.ssh/id_rsa.pub
+          chmod 600 ~/.ssh/id_rsa
+          chmod 644 ~/.ssh/id_rsa.pub
         displayName: 'Install ssh keys'
       - script: |
           cd azure
