@@ -49,6 +49,8 @@ stages:
           ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
           ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
           ARM_TENANT_ID: $(ARM_TENANT_ID)
+          AZURE_DEVOPS_ORGANIZATION: $(AZURE_DEVOPS_ORGANIZATION)
+          AZURE_DEVOPS_PAT_TOKEN: $(AZURE_DEVOPS_PAT_TOKEN)
       - publish: $(System.DefaultWorkingDirectory)/azure/terraform.tfstate
         artifact: GPU_agent_tfstate
 
