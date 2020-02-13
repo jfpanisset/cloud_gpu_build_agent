@@ -76,6 +76,26 @@ stages:
   jobs:
     - job: GPUDestroyTerraformAzure
       steps:
+      - task: DownloadSecureFile@1
+        name: ssh_public_key
+        displayName: 'Download ssh public key'
+        inputs:
+          secureFile: id_rsa.pub
+      - task: DownloadSecureFile@1
+        name: ssh_private_key
+        displayName: 'Download ssh private key'
+        inputs:
+          secureFile: id_rsa
+      - script: |
+          mkdir ~/.ssh
+          chmod 700 ~/.ssh
+          sudo cp $(ssh_private_key.secureFilePath) ~/.ssh/id_rsa
+          sudo cp $(ssh_public_key.secureFilePath) ~/.ssh/id_rsa.pub
+          sudo chown $(id -u):$(id -g) ~/.ssh/id_rsa
+          sudo chown $(id -u):$(id -g) ~/.ssh/id_rsa.pub
+          chmod 600 ~/.ssh/id_rsa
+          chmod 644 ~/.ssh/id_rsa.pub
+        displayName: 'Install ssh keys'  
       - task: DownloadPipelineArtifact@2
         inputs:
           artifact: GPU_agent_azure_tfstate
