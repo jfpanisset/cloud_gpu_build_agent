@@ -1,17 +1,64 @@
-# Demonstrate that OpenGL is available when building inside a container
+# Demonstrate creating a self hosted GPU accelerated build agent using Terraform,
+# and then running a job on that agent that shows OpenGL is available when building inside a container
+
+# TODO:
+# - create temporary and unique agent pool to avoid clashes between different builds (or look at demands as a mechanism)
+# - robust checking that the GPU agent has been destroyed (don't run the meter!)
+# - a better mechanism for managing the Terraform tfstate file
+# - allow the GPU builder to stick around for a few minutes, don't always destroy it
 
 trigger:
 - master
 
-jobs:
-- job: Linux
+stages:
+- stage: GPUCreate
+  pool:
+    vmImage: ubuntu-18.04
+  jobs:
+    - job: GPUCreateTerraform
+      steps:
+      - script:
+          cd azure
+          terraform init
+          terraform apply
+        env:
+          ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+          ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+          ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+          ARM_TENANT_ID: $(ARM_TENANT_ID)
+      - publish: $(System.DefaultWorkingDirectory)/azure/terraform.tfstate
+        artifact: GPU_agent_tfstate
+
+- stage: GPUDemo
   pool:
     name: 'GPU Ubuntu 18.04'
   container:
     image: aswftesting/ci-ocio:2019.1
     options: --gpus all -v /tmp/.X11-unix:/tmp/.X11-unix
+  jobs:
+    - job: GPUDemoOpenGL
+      steps:
+        - script: DISPLAY=:0.0 glxinfo
+          displayName: 'Run a one-line script'
 
-  steps:
-  - script: DISPLAY=:0.0 glxinfo
-    displayName: 'Run a one-line script'
+- stage: GPUDestroy
+  pool:
+    vmImage: ubuntu-18.04
+  jobs:
+    - job: GPUDestroyTerraform
+      steps:
+      - task: DownloadPipelineArtifact@2
+        inputs:
+          artifact: GPU_agent_tfstate
+          path: $(Build.SourcesDirectory)/azure
+      - script:
+          cd azure
+          terraform destroy
+        env:
+          ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+          ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+          ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+          ARM_TENANT_ID: $(ARM_TENANT_ID)
+
+
 
