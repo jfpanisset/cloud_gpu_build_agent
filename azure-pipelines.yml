@@ -32,10 +32,10 @@ stages:
       - script: |
           mkdir $(System.DefaultWorkingDirectory)/.ssh
           chmod 700 $(System.DefaultWorkingDirectory)/.ssh
-          chmod 600 id_rsa_gpu
-          chmod 644 id_rsa_gpu.pub
-          mv id_rsa_gpu $(System.DefaultWorkingDirectory)/.ssh/id_rsa
-          mv id_rsa_gpu.pub $(System.DefaultWorkingDirectory)/.ssh/id_rsa.pub
+          cp $(ssh_private_key.secureFilePath) $(System.DefaultWorkingDirectory)/.ssh/id_rsa
+          cp $(ssh_public_key.secureFilePath) $(System.DefaultWorkingDirectory)/.ssh/id_rsa
+          chmod 600 $(System.DefaultWorkingDirectory)/.ssh/id_rsa
+          chmod 644 $$(System.DefaultWorkingDirectory)/.ssh/id_rsa
         displayName: 'Install ssh keys'
       - script: |
           cd azure
