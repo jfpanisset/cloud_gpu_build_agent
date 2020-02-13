@@ -19,25 +19,11 @@ stages:
   jobs:
     - job: GPUCreateTerraform
       steps:
-      - task: DownloadSecureFile@1
-        name: ssh_public_key
-        displayName: 'Download ssh public key'
+      - task: InstallSSHKey@0
         inputs:
-          secureFile: id_rsa_gpu.pub
-      - task: DownloadSecureFile@1
-        name: ssh_private_key
-        displayName: 'Download ssh private key'
-        inputs:
-          secureFile: id_rsa_gpu
-      - script: |
-          mkdir $(Agent.HomeDirectory)/.ssh
-          chmod 700 $(Agent.HomeDirectory)/.ssh
-          sudo cp $(ssh_private_key.secureFilePath) $(Agent.HomeDirectory)/.ssh/id_rsa
-          sudo cp $(ssh_public_key.secureFilePath) $(Agent.HomeDirectory)/.ssh/id_rsa.pub
-          sudo chown $(id -u):$(id -g) $(Agent.HomeDirectory)/.ssh/id_rsa
-          sudo chown $(id -u):$(id -g) $(Agent.HomeDirectory)/.ssh/id_rsa.pub
-          chmod 600 $(Agent.HomeDirectory)/.ssh/id_rsa
-          chmod 644 $(Agent.HomeDirectory)/.ssh/id_rsa.pub
+          knownHostsEntry: DUMMY
+          sshPublicKey: 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDE2MCk6a0jLLjdP2G/hsJ5ddUdvT/IaDH8nTT3a6ilAovZ4ODpNQiiOPdiVRhw9yvuJNgcREXJlchdFmPN7OxW+I6h3Ma5G+iUkcFE89pifMwLm6Z13NmNKV+Ptz7gpQ39ltW2lUfbJ2SUqhp5qOb+VNj5LcMgPwN9NAQcZLXVl+I/WJMOZN815jg4jf3aYXLEtdKTHa44suztpeuLXcl0KQl+FrrOnib/e1wWeVPLh17xZO8nabwNskbIAGxF0LBy1e1jrZAR4vtWx6wT5K45tsCc7bsmnqPXsHy0scNwnr4Yn9A/RezxSFFo6diRejnZhSw00WvQ7eDqLF6+0BJn foo@bar'
+          sshKeySecureFile: id_rsa
         displayName: 'Install ssh keys'
       - script: |
           cd azure
