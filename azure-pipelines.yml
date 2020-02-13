@@ -30,14 +30,14 @@ stages:
         inputs:
           secureFile: id_rsa_gpu
       - script: |
-          mkdir $(System.DefaultWorkingDirectory)/.ssh
-          chmod 700 $(System.DefaultWorkingDirectory)/.ssh
-          sudo cp $(ssh_private_key.secureFilePath) $(System.DefaultWorkingDirectory)/.ssh/id_rsa
-          sudo cp $(ssh_public_key.secureFilePath) $(System.DefaultWorkingDirectory)/.ssh/id_rsa.pub
-          sudo chown $(id -u):$(id -g) $(System.DefaultWorkingDirectory)/.ssh/id_rsa
-          sudo chown $(id -u):$(id -g) $(System.DefaultWorkingDirectory)/.ssh/id_rsa.pub
-          chmod 600 $(System.DefaultWorkingDirectory)/.ssh/id_rsa
-          chmod 644 $(System.DefaultWorkingDirectory)/.ssh/id_rsa.pub
+          mkdir $(Agent.HomeDirectory)/.ssh
+          chmod 700 $(Agent.HomeDirectory)/.ssh
+          sudo cp $(ssh_private_key.secureFilePath) $(Agent.HomeDirectory)/.ssh/id_rsa
+          sudo cp $(ssh_public_key.secureFilePath) $(Agent.HomeDirectory)/.ssh/id_rsa.pub
+          sudo chown $(id -u):$(id -g) $(Agent.HomeDirectory)/.ssh/id_rsa
+          sudo chown $(id -u):$(id -g) $(Agent.HomeDirectory)/.ssh/id_rsa.pub
+          chmod 600 $(Agent.HomeDirectory)/.ssh/id_rsa
+          chmod 644 $(Agent.HomeDirectory)/.ssh/id_rsa.pub
         displayName: 'Install ssh keys'
       - script: |
           cd azure
