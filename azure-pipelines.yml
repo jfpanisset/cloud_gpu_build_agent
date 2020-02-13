@@ -17,18 +17,18 @@ stages:
   pool:
     vmImage: ubuntu-18.04
   jobs:
-    - job: GPUCreateTerraform
-      steps:
-        - task: DownloadSecureFile@1
+  - job: GPUCreateTerraform
+    steps:
+      - task: DownloadSecureFile@1
         name: ssh_public_key
         displayName: 'Download ssh public key'
         inputs:
-          secureFile: id_rsa_gpu.pub
+          secureFile: id_rsa.pub
       - task: DownloadSecureFile@1
         name: ssh_private_key
         displayName: 'Download ssh private key'
         inputs:
-          secureFile: id_rsa_gpu
+          secureFile: id_rsa
       - script: |
           mkdir $(Agent.HomeDirectory)/.ssh
           chmod 700 $(Agent.HomeDirectory)/.ssh
