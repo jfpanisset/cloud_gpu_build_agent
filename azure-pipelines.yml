@@ -32,8 +32,10 @@ stages:
       - script: |
           mkdir $(System.DefaultWorkingDirectory)/.ssh
           chmod 700 $(System.DefaultWorkingDirectory)/.ssh
-          cp $(ssh_private_key.secureFilePath) $(System.DefaultWorkingDirectory)/.ssh/id_rsa
-          cp $(ssh_public_key.secureFilePath) $(System.DefaultWorkingDirectory)/.ssh/id_rsa
+          sudo cp $(ssh_private_key.secureFilePath) $(System.DefaultWorkingDirectory)/.ssh/id_rsa
+          sudo cp $(ssh_public_key.secureFilePath) $(System.DefaultWorkingDirectory)/.ssh/id_rsa
+          sudo chown $(id -u):$(id -g) $(System.DefaultWorkingDirectory)/.ssh/id_rsa
+          sudo chown $(id -u):$(id -g) $(System.DefaultWorkingDirectory)/.ssh/id_rsa.pub
           chmod 600 $(System.DefaultWorkingDirectory)/.ssh/id_rsa
           chmod 644 $$(System.DefaultWorkingDirectory)/.ssh/id_rsa
         displayName: 'Install ssh keys'
