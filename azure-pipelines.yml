@@ -13,11 +13,11 @@ trigger:
 - master
 
 stages:
-- stage: GPUCreate
+- stage: GPUCreateAzure
   pool:
     vmImage: ubuntu-18.04
   jobs:
-  - job: GPUCreateTerraform
+  - job: GPUCreateTerraformAzure
     steps:
       - task: DownloadSecureFile@1
         name: ssh_public_key
@@ -68,13 +68,13 @@ stages:
             glxinfo
           displayName: 'Demonstrate GPU accelerated X visuals'
           env:
-            DISPLAY: 0.0
+            DISPLAY: ':0.0'
 
-- stage: GPUDestroy
+- stage: GPUDestroyAzure
   pool:
     vmImage: ubuntu-18.04
   jobs:
-    - job: GPUDestroyTerraform
+    - job: GPUDestroyTerraformAzure
       steps:
       - task: DownloadPipelineArtifact@2
         inputs:
