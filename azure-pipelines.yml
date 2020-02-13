@@ -52,7 +52,7 @@ stages:
           AZURE_DEVOPS_ORGANIZATION: $(AZURE_DEVOPS_ORGANIZATION)
           AZURE_DEVOPS_PAT_TOKEN: $(AZURE_DEVOPS_PAT_TOKEN)
       - publish: $(System.DefaultWorkingDirectory)/azure/terraform.tfstate
-        artifact: GPU_agent_tfstate
+        artifact: GPU_agent_azure_tfstate
 
 - stage: GPUDemo
   pool:
@@ -78,10 +78,11 @@ stages:
       steps:
       - task: DownloadPipelineArtifact@2
         inputs:
-          artifact: GPU_agent_tfstate
+          artifact: GPU_agent_azure_tfstate
           path: $(Build.SourcesDirectory)/azure
       - script: |
           cd azure
+          terraform init
           terraform destroy -auto-approve
         displayName: 'Terraform destroys the GPU build agent on Azure'
         env:
