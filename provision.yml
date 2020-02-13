@@ -5,7 +5,7 @@
   become_method: sudo
 
   vars:
-    azure_pipelines_agent_version: "2.160.0"
+    azure_pipelines_agent_version: "2.164.8"
     azure_pipelines_agent_filename: "vsts-agent-linux-x64-{{ azure_pipelines_agent_version }}.tar.gz"
     azure_pipelines_agent_dir: "myagent"
     azure_pipelines_organization: "{{ lookup('env','AZURE_DEVOPS_ORGANIZATION') }}"
