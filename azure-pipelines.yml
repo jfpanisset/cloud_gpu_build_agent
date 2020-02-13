@@ -80,7 +80,7 @@ stages:
           path: $(Build.SourcesDirectory)/azure
       - script: |
           cd azure
-          terraform destroy
+          terraform destroy -auto-approve
         displayName: 'Terraform destroys the GPU build agent on Azure'
         env:
           ARM_CLIENT_ID: $(ARM_CLIENT_ID)
