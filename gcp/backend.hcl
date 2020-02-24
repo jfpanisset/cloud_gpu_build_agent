@@ -1,1 +1,1 @@
-workspaces { name = "aswf_build" }
+workspaces { name = "aswf_build_gcp" }

@@ -383,7 +383,7 @@ The blog entry is somewhat more clever: it installs a daemon on the GPU build ag
 ### Prerequisites
 
 - Terraform Cloud account to store the Terraform state between pipeline stages
-- Workspace in the Terraform Cloud account named aswf_build and set to Execution Mode: Local
+- Workspace in the Terraform Cloud account named aswf_build_azure, aswf_build_gcp and aswf_build_aws set to Execution Mode: Local
 - API user token stored as TF_API_TOKEN secret variable in Azure Pipelines
 - Terraform Cloud organization name in TF_API_ORGANIZATION
 - The Terraform Cloud workspace named is specified in backend.hcl

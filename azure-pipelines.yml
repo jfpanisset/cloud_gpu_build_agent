@@ -80,7 +80,6 @@ jobs:
     maxParallel: 3
   pool:
     name: 'GPU Ubuntu 18.04 $(cspName)'
-  dependsOn: 
   container:
     image: aswftesting/ci-ocio:2019.1
     options: --gpus all -v /tmp/.X11-unix:/tmp/.X11-unix
