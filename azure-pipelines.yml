@@ -4,13 +4,16 @@
 # TODO:
 # - create temporary and unique agent pool to avoid clashes between different builds (or look at demands as a mechanism)
 # - robust checking that the GPU agent has been destroyed (don't run the meter!)
-# - a better mechanism for managing the Terraform tfstate file
+# - a better mechanism for managing the Terraform tfstate file (with encryption)
 # - allow the GPU builder to stick around for a few minutes, don't always destroy it
 # - correctly deregister the GPU build agent from the pool before destroying it
 # - consider generating temp ssh keys on the fly to provision GPU build agent
 
 trigger:
 - master
+
+# no PR triggers: only committers to the master branch should be able to trigger these builds
+pr: none
 
 stages:
 - stage: GPUCreateAzure
@@ -41,7 +44,7 @@ stages:
         displayName: 'Install ssh keys'
       - script: |
           cd azure
-          terraform init
+          terraform init -backend-config="token=$TF_API_TOKEN" -backend-config="organization=$TF_API_ORGANIZATION" -backend-config=backend.hcl
           terraform apply -auto-approve
         displayName: 'Terraform builds the GPU build agent on Azure'
         env:
@@ -51,8 +54,11 @@ stages:
           ARM_TENANT_ID: $(ARM_TENANT_ID)
           AZURE_DEVOPS_ORGANIZATION: $(AZURE_DEVOPS_ORGANIZATION)
           AZURE_DEVOPS_PAT_TOKEN: $(AZURE_DEVOPS_PAT_TOKEN)
-      - publish: $(System.DefaultWorkingDirectory)/azure/terraform.tfstate
-        artifact: GPU_agent_azure_tfstate
+          TF_API_TOKEN: $(TF_API_TOKEN)
+          TF_API_ORGANIZATION: $(TF_API_ORGANIZATION)
+          
+#      - publish: $(System.DefaultWorkingDirectory)/azure/terraform.tfstate
+#        artifact: GPU_agent_azure_tfstate
 
 - stage: GPUDemo
   pool:
@@ -96,13 +102,13 @@ stages:
           chmod 600 ~/.ssh/id_rsa
           chmod 644 ~/.ssh/id_rsa.pub
         displayName: 'Install ssh keys'  
-      - task: DownloadPipelineArtifact@2
-        inputs:
-          artifact: GPU_agent_azure_tfstate
-          path: $(Build.SourcesDirectory)/azure
+#      - task: DownloadPipelineArtifact@2
+#        inputs:
+#          artifact: GPU_agent_azure_tfstate
+#          path: $(Build.SourcesDirectory)/azure
       - script: |
           cd azure
-          terraform init
+          terraform init -backend-config="token=$TF_API_TOKEN" -backend-config="organization=$TF_API_ORGANIZATION" -backend-config=backend.hcl
           terraform destroy -auto-approve
         displayName: 'Terraform destroys the GPU build agent on Azure'
         env:
@@ -110,6 +116,5 @@ stages:
           ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
           ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
           ARM_TENANT_ID: $(ARM_TENANT_ID)
-
-
-
+          TF_API_TOKEN: $(TF_API_TOKEN)
+          TF_API_ORGANIZATION: $(TF_API_ORGANIZATION)

@@ -1,7 +1,21 @@
+# Terraform Backend Configuration
+# This is a partial configuration, requires organization= token= workspaces= from
+# terraform init command line
+
+# Before Terraform 0.12 you could pass a workspace on the command line using:
+# terraform init  -backend-config="workspaces=[{name=foo}]"
+# but this is now broken as per https://github.com/hashicorp/terraform/issues/21830}
+# So for now we specify the workspace in backend.hcl
+
+terraform {
+  required_version = ">= 0.12"
+  backend "remote" {}
+}
+
 # Configure the Azure Provider
 provider "azurerm" {
   # whilst the `version` attribute is optional, we recommend pinning to a given version of the Provider
-  version = "=1.36.1"
+  version = "=1.44.0"
 }
 
 # Create a resource group

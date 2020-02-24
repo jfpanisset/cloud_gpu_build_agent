@@ -366,3 +366,24 @@ $ docker run --gpus all nvidia/cuda:9.0-base nvidia-smi
 should run the `nvidia-smi` utility inside a GPU-enabled container and print information about the GPU on the host.
 
 For CUDA applications it is no longer necessary to install the CUDA toolkit on the host, it only needs to be present inside the container.
+
+## On Demand GPU Build Agents on Azure Pipelines
+
+This [blog post](https://g3rv4.com/2019/11/azure-pipelines-auto-privisioning-agents) pointed towards a solution for on-demand GPU build agents on Azure Pipelines.
+
+Each stage in an Azure pipeline can specify a separate agent pool, allowing you do to something like:
+
+- stage 1: use a Microsoft hosted agent in the "Azure Pipelines" agent pool to spin up a GPU accelerated VM using Terraform, have it join a custom GPU accelerated agent pool
+- stage 2: run the workload that requires a GPU using the agent joined to the GPU agent pool in stage 1
+- stage 3: use a Microsoft hosted agent to destroy the GPU build agent
+
+The blog entry is somewhat more clever: it installs a daemon on the GPU build agent that keeps the GPU agent alive for a specified amount of time so it can be reused it for multiple builds / build stages, and leverages [Terraform Cloud](https://www.hashicorp.com/blog/announcing-terraform-cloud/), the hosted version of Terraform to destroy itself after a period of inactivity.
+
+
+### Prerequisites
+
+- Terraform Cloud account to store the Terraform state between pipeline stages
+- Workspace in the Terraform Cloud account named aswf_build and set to Execution Mode: Local
+- API user token stored as TF_API_TOKEN secret variable in Azure Pipelines
+- Terraform Cloud organization name in TF_API_ORGANIZATION
+- The Terraform Cloud workspace named is specified in backend.hcl
