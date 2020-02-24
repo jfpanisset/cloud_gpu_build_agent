@@ -65,7 +65,7 @@ export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
 Finally, you will need to set environment variables specific to the cloud service you are using (see additional details in the sections on each cloud provider). A Terraform variable called `foo` will have its value set to `bar` by an environment variable called `TF_VAR_foo` with value `bar`, you could also use the command line option `-var foo=bar` to `terraform apply`.
 
 - Google GCP
-        (no environment variables exposed yet)
+        export GOOGLE_CLOUD_KEYFILE_JSON=THE_CONTENTS_OF_YOUR_JSON_CREDENTIALS_FILE
 - Azure
         export ARM_CLIENT_ID="00000000-0000-0000-0000-000000000000"
         export ARM_CLIENT_SECRET="00000000-0000-0000-0000-000000000000"

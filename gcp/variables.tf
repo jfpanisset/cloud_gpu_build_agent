@@ -1,5 +1,5 @@
 variable "prefix" {
-  default = "MYPROJECT"
+  default = "jf-aswf-4"
 }
 
 variable "cloud_provider" {
