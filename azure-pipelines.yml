@@ -4,10 +4,10 @@
 # TODO:
 # - create temporary and unique agent pool to avoid clashes between different builds (or look at demands as a mechanism)
 # - robust checking that the GPU agent has been destroyed (don't run the meter!)
-# - a better mechanism for managing the Terraform tfstate file (with encryption)
 # - allow the GPU builder to stick around for a few minutes, don't always destroy it
 # - correctly deregister the GPU build agent from the pool before destroying it
 # - consider generating temp ssh keys on the fly to provision GPU build agent
+# - Demonstrate GCP and AWS
 
 trigger:
 - master
@@ -15,12 +15,22 @@ trigger:
 # no PR triggers: only committers to the master branch should be able to trigger these builds
 pr: none
 
+strategy:
+  matrix:
+    azure:
+      cspName: 'azure'
+    aws:
+      cspName: 'aws'
+    gcp:
+      cspName: 'gcp'
+  maxParallel: 3
+
 stages:
-- stage: GPUCreateAzure
+- stage: GPUCreate
   pool:
     vmImage: ubuntu-18.04
   jobs:
-  - job: GPUCreateTerraformAzure
+  - job: GPUCreateTerraform
     steps:
       - task: DownloadSecureFile@1
         name: ssh_public_key
@@ -43,27 +53,26 @@ stages:
           chmod 644 ~/.ssh/id_rsa.pub
         displayName: 'Install ssh keys'
       - script: |
-          cd azure
+          cd $(cspName)
           terraform init -backend-config="token=$TF_API_TOKEN" -backend-config="organization=$TF_API_ORGANIZATION" -backend-config=backend.hcl
           terraform apply -auto-approve
-        displayName: 'Terraform builds the GPU build agent on Azure'
+        displayName: 'Terraform builds the GPU build agent on $(cspName)'
         env:
           ARM_CLIENT_ID: $(ARM_CLIENT_ID)
           ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
           ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
           ARM_TENANT_ID: $(ARM_TENANT_ID)
+          TF_VAR_aws_access_key_id: $(TF_VAR_aws_access_key_id)
+          TF_VAR_aws_secret_access_key: $(TF_VAR_aws_secret_access_key)
           AZURE_DEVOPS_ORGANIZATION: $(AZURE_DEVOPS_ORGANIZATION)
           AZURE_DEVOPS_PAT_TOKEN: $(AZURE_DEVOPS_PAT_TOKEN)
+          AZURE_DEVOPS_GPU_POOL: 'GPU Ubuntu 18.04 $(cspName)'
           TF_API_TOKEN: $(TF_API_TOKEN)
           TF_API_ORGANIZATION: $(TF_API_ORGANIZATION)
-          
-#      - publish: $(System.DefaultWorkingDirectory)/azure/terraform.tfstate
-#        artifact: GPU_agent_azure_tfstate
 
 - stage: GPUDemo
   pool:
-    name: 'GPU Ubuntu 18.04'
-
+    name: 'GPU Ubuntu 18.04 $(cspName)'
   jobs:
     - job: GPUDemoOpenGL
       container:
@@ -72,15 +81,15 @@ stages:
       steps:
         - script: |
             glxinfo
-          displayName: 'Demonstrate GPU accelerated X visuals'
+          displayName: 'Demonstrate GPU accelerated X visuals on $(cspName)'
           env:
             DISPLAY: ':0.0'
 
-- stage: GPUDestroyAzure
+- stage: GPUDestroy
   pool:
     vmImage: ubuntu-18.04
   jobs:
-    - job: GPUDestroyTerraformAzure
+    - job: GPUDestroyTerraform
       steps:
       - task: DownloadSecureFile@1
         name: ssh_public_key
@@ -102,19 +111,17 @@ stages:
           chmod 600 ~/.ssh/id_rsa
           chmod 644 ~/.ssh/id_rsa.pub
         displayName: 'Install ssh keys'  
-#      - task: DownloadPipelineArtifact@2
-#        inputs:
-#          artifact: GPU_agent_azure_tfstate
-#          path: $(Build.SourcesDirectory)/azure
       - script: |
-          cd azure
+          cd $(cspName)
           terraform init -backend-config="token=$TF_API_TOKEN" -backend-config="organization=$TF_API_ORGANIZATION" -backend-config=backend.hcl
           terraform destroy -auto-approve
-        displayName: 'Terraform destroys the GPU build agent on Azure'
+        displayName: 'Terraform destroys the GPU build agent on $(cspName)'
         env:
           ARM_CLIENT_ID: $(ARM_CLIENT_ID)
           ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
           ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
           ARM_TENANT_ID: $(ARM_TENANT_ID)
+          TF_VAR_aws_access_key_id: $(TF_VAR_aws_access_key_id)
+          TF_VAR_aws_secret_access_key: $(TF_VAR_aws_secret_access_key)
           TF_API_TOKEN: $(TF_API_TOKEN)
           TF_API_ORGANIZATION: $(TF_API_ORGANIZATION)

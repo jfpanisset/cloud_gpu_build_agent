@@ -387,3 +387,8 @@ The blog entry is somewhat more clever: it installs a daemon on the GPU build ag
 - API user token stored as TF_API_TOKEN secret variable in Azure Pipelines
 - Terraform Cloud organization name in TF_API_ORGANIZATION
 - The Terraform Cloud workspace named is specified in backend.hcl
+- a pair of public/private ssh keys generated with ssh-keygen -o and uploaded to the Azure Pipelines project as secret files named id_rsa and id_rsa.pub
+- pipeline (secret) environment variables ARM_CLIENT_ID, ARM_CLIENT_SECRET, ARM_SUBSCRIPTION_ID and ARM_TENANT_ID for the Azure subscription that will be used to create a GPU VM
+- pipeline (secret) environment variables TF_VAR_aws_access_key_id and TF_VAR_aws_secret_access_key for the AWS account
+- pipeline environment variables AZURE_DEVOPS_ORGANIZATION and AZURE_DEVOPS_PAT_TOKEN to allow agent to register with Azure Pipelines pool
+- Agents pools called "GPU Ubuntu 18.04 azure", "GPU Ubuntu 18.04 aws" and "GPU Ubuntu 18.04 gcp"

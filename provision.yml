@@ -10,7 +10,7 @@
     azure_pipelines_agent_dir: "myagent"
     azure_pipelines_organization: "{{ lookup('env','AZURE_DEVOPS_ORGANIZATION') }}"
     azure_pipelines_token: "{{ lookup('env','AZURE_DEVOPS_PAT_TOKEN') }}"
-    azure_pipelines_pool: "GPU Ubuntu 18.04"
+    azure_pipelines_pool: "{{ lookup('env','AZURE_DEVOPS_GPU_POOL') }}"
 
     # Pass in 'cloud_provider' as variable to pick the pre-licensed GRID driver to install
     nvidia_grid_driver_source:
