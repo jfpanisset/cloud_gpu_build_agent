@@ -69,6 +69,7 @@ jobs:
         TF_API_ORGANIZATION: $(TF_API_ORGANIZATION)
 
 - job: GPUDemoOpenGL
+  dependsOn: GPUCreateTerraform
   strategy:
     matrix:
       azure:
@@ -91,6 +92,7 @@ jobs:
         DISPLAY: ':0.0'
 
 - job: GPUDestroyTerraform
+  dependsOn: GPUDemoOpenGL
   strategy:
     matrix:
       azure:
