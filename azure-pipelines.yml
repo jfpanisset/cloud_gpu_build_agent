@@ -62,6 +62,7 @@ jobs:
         ARM_TENANT_ID: $(ARM_TENANT_ID)
         TF_VAR_aws_access_key_id: $(TF_VAR_aws_access_key_id)
         TF_VAR_aws_secret_access_key: $(TF_VAR_aws_secret_access_key)
+        GOOGLE_CLOUD_KEYFILE_JSON: $(GOOGLE_CLOUD_KEYFILE_JSON)
         AZURE_DEVOPS_ORGANIZATION: $(AZURE_DEVOPS_ORGANIZATION)
         AZURE_DEVOPS_PAT_TOKEN: $(AZURE_DEVOPS_PAT_TOKEN)
         AZURE_DEVOPS_GPU_POOL: 'GPU Ubuntu 18.04 $(cspName)'
@@ -137,5 +138,6 @@ jobs:
       ARM_TENANT_ID: $(ARM_TENANT_ID)
       TF_VAR_aws_access_key_id: $(TF_VAR_aws_access_key_id)
       TF_VAR_aws_secret_access_key: $(TF_VAR_aws_secret_access_key)
+      GOOGLE_CLOUD_KEYFILE_JSON: $(GOOGLE_CLOUD_KEYFILE_JSON)
       TF_API_TOKEN: $(TF_API_TOKEN)
       TF_API_ORGANIZATION: $(TF_API_ORGANIZATION)

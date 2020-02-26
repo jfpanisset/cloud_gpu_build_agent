@@ -30,21 +30,6 @@
   - name: Update and upgrade apt packages
     apt:
       update_cache: yes
-
-  # Workaround for recurring issue preventing unattended Ubuntu upgrade on EC2 instances
-  - name: Workaround Ubuntu apt upgrade issue on EC2 1/2
-    file:
-      path:  /boot/grub/menu.lst
-      state: absent
-    when:  cloud_provider == "aws"
-
-  - name: Workaround Ubuntu apt upgrade issue on EC2 2/2
-    command:
-      cmd:  update-grub-legacy-ec2 -y
-    when: cloud_provider == "aws"
-
-  - name: Upgrade apt packages
-    apt:
       upgrade: yes
 
   - name: Install support for repository access via https

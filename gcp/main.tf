@@ -88,7 +88,8 @@ resource "google_compute_instance" "default" {
     host        = self.network_interface.0.access_config.0.nat_ip
   }
   provisioner "remote-exec" {
-    inline = ["sudo apt update && sudo apt -y upgrade"]
+    // Dummy command just to wait until ssh is ready for Ansible
+    inline = ["cat /etc/issue"]
   }
 
   // Ubuntu 18.04 minimal install doesn't have Python 2 by default, and "python-minimal" package seems

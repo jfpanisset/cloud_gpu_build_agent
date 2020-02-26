@@ -140,7 +140,8 @@ resource "azurerm_virtual_machine" "main" {
       private_key = file("~/.ssh/id_rsa")
       host        = data.azurerm_public_ip.main.fqdn
     }
-    inline = ["sudo apt update && sudo apt -y upgrade"]
+    // Dummy command just to wait until ssh is ready for Ansible
+    inline = ["cat /etc/issue"]
   }
 
   provisioner "local-exec" {
