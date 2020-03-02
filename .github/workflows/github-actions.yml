@@ -48,8 +48,8 @@ jobs:
           chmod 644 ~/.ssh/id_rsa.pub
         shell: bash
       - name: Terraform builds the GPU build agent
+        working-directory: ./${{ matrix.cspName }}
         run: |
-          cd ${{ matrix.cspName }}
           terraform init -backend-config="token=$TF_API_TOKEN" -backend-config="organization=$TF_API_ORGANIZATION" -backend-config=backend.hcl
           terraform apply -auto-approve
         shell: bash
@@ -93,8 +93,8 @@ jobs:
           chmod 644 ~/.ssh/id_rsa.pub
         shell: bash
       - name: Terraform destroys the GPU build agent
+        working-directory: ./${{ matrix.cspName }}
         run: |
-          cd ${{ matrix.cspName }}
           terraform init -backend-config="token=$TF_API_TOKEN" -backend-config="organization=$TF_API_ORGANIZATION" -backend-config=backend.hcl
           terraform destroy -auto-approve
         shell: bash
