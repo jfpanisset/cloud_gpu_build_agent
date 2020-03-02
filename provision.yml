@@ -244,8 +244,6 @@
   - name: Set CI agent registration token
     set_fact:
       ci_agent_token: "{{ github_registration_token.json.token if ci_system == 'github_actions' else ci_agent_registration_token[ci_system] }}"
-    when:
-      ci_system == "github_actions"
 
   - name: Configure the CI agent
     command: "./config.sh

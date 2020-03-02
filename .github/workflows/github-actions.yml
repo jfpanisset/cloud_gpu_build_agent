@@ -26,7 +26,7 @@ env:
   TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
   TF_API_ORGANIZATION: ${{ secrets.TF_API_ORGANIZATION }}
   ID_RSA: ${{ secrets.ID_RSA }}
-  ID_RSA_PUB: ${{ sectes.ID_RSA.PUB }}
+  ID_RSA_PUB: ${{ secrets.ID_RSA.PUB }}
 
 jobs:
   GPUCreateTerraform:
