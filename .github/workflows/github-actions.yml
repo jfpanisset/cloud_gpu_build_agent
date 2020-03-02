@@ -36,6 +36,8 @@ jobs:
       max-parallel: 3
     runs-on: ubuntu-18.04
     steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
       - name: Install ssh keys
         run: |
           mkdir ~/.ssh
@@ -81,6 +83,8 @@ jobs:
       max-parallel: 3
     runs-on: ubuntu-18.04
     steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
       - name: Install ssh keys
         run: |
           mkdir ~/.ssh
