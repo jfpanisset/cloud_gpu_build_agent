@@ -1,0 +1,100 @@
+# Demonstrate creating a self hosted GPU accelerated build agent using Terraform,
+# and then running a job on that agent that shows OpenGL is available when building inside a container
+
+# TODO:
+# - create temporary and unique agent pool to avoid clashes between different builds (or look at demands as a mechanism)
+# - robust checking that the GPU agent has been destroyed (don't run the meter!)
+# - allow the GPU builder to stick around for a few minutes, don't always destroy it
+# - correctly deregister the GPU build agent from the pool before destroying it
+# - consider generating temp ssh keys on the fly to provision GPU build agent
+# - Figure out dependencies between matrixed jobs
+
+on:
+  push:
+    branches:
+      - master
+
+env:
+  ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+  ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+  ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+  ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+  TF_VAR_aws_access_key_id: ${{ secrets.TF_VAR_aws_access_key_id }}
+  TF_VAR_aws_secret_access_key: ${{ secrets.TF_VAR_aws_secret_access_key }}
+  GOOGLE_CLOUD_KEYFILE_JSON: ${{ secrets.GOOGLE_CLOUD_KEYFILE_JSON }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
+  TF_API_ORGANIZATION: ${{ secrets.TF_API_ORGANIZATION }}
+  ID_RSA: ${{ secrets.ID_RSA }}
+  ID_RSA_PUB: ${{ sectes.ID_RSA.PUB }}
+
+jobs:
+  GPUCreateTerraform:
+    strategy:
+      matrix:
+        cspName: [azure, aws, gcp]
+      max-parallel: 3
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Install ssh keys
+        run: |
+          mkdir ~/.ssh
+          chmod 700 ~/.ssh
+          sudo echo $ID_RSA > ~/.ssh/id_rsa
+          sudo echo $ID_RSA_PUB > ~/.ssh/id_rsa.pub
+          sudo chown $(id -u):$(id -g) ~/.ssh/id_rsa
+          sudo chown $(id -u):$(id -g) ~/.ssh/id_rsa.pub
+          chmod 600 ~/.ssh/id_rsa
+          chmod 644 ~/.ssh/id_rsa.pub
+        shell: bash
+      - name: Terraform builds the GPU build agent
+        run: |
+          cd ${{ matrix.cspName }}
+          terraform init -backend-config="token=$TF_API_TOKEN" -backend-config="organization=$TF_API_ORGANIZATION" -backend-config=backend.hcl
+          terraform apply -auto-approve
+        shell: bash
+
+  GPUDemoOpenGL:
+    needs: GPUCreateTerraform
+    strategy:
+      matrix:
+        cspName: [azure, aws, gcp]
+      max-parallel: 3
+    # We're assuming that self-hosted runners are the GPU-enabled ones we just created
+    runs-on: [self-hosted, linux, x64]
+    container:
+      image: aswftesting/ci-ocio:2019.1
+      options: --gpus all -v /tmp/.X11-unix:/tmp/.X11-unix
+    steps:
+      - name: Demonstrate GPU accelerated X visuals
+        run: |
+          glxinfo
+        shell: bash
+        env:
+          DISPLAY: ':0.0'
+
+  GPUDestroyTerraform:
+    needs: GPUDemoOpenGL
+    strategy:
+      matrix:
+        cspName: [azure, aws, gcp]
+      max-parallel: 3
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Install ssh keys
+        run: |
+          mkdir ~/.ssh
+          chmod 700 ~/.ssh
+          sudo echo $ID_RSA > ~/.ssh/id_rsa
+          sudo echo $ID_RSA_PUB > ~/.ssh/id_rsa.pub
+          sudo chown $(id -u):$(id -g) ~/.ssh/id_rsa
+          sudo chown $(id -u):$(id -g) ~/.ssh/id_rsa.pub
+          chmod 600 ~/.ssh/id_rsa
+          chmod 644 ~/.ssh/id_rsa.pub
+        shell: bash
+      - name: Terraform destroys the GPU build agent
+        run: |
+          cd ${{ matrix.cspName }}
+          terraform init -backend-config="token=$TF_API_TOKEN" -backend-config="organization=$TF_API_ORGANIZATION" -backend-config=backend.hcl
+          terraform destroy -auto-approve
+        shell: bash

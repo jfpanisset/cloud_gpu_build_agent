@@ -5,14 +5,58 @@
   become_method: sudo
 
   vars:
-    azure_pipelines_agent_version: "2.164.8"
-    azure_pipelines_agent_filename: "vsts-agent-linux-x64-{{ azure_pipelines_agent_version }}.tar.gz"
-    azure_pipelines_agent_dir: "myagent"
-    azure_pipelines_organization: "{{ lookup('env','AZURE_DEVOPS_ORGANIZATION') }}"
-    azure_pipelines_token: "{{ lookup('env','AZURE_DEVOPS_PAT_TOKEN') }}"
-    azure_pipelines_pool: "{{ lookup('env','AZURE_DEVOPS_GPU_POOL') }}"
+    # The following environment variables should be set in your environment before calling this playbook based on the CI system:
+    #
+    # Azure Pipelines:
+    #  AZURE_DEVOPS_ORGANIZATION : Azure DevOps organization under which the pipeline is created
+    #  AZURE_DEVOPS_GPU_POOL: Azure DevOps build agent pool name this agent will register into
+    #  AZURE_DEVOPS_PAT_TOKEN: Azure DevOps Personal Access Token to grant API access for the organization. This should be a secret environment variable.
+    # GitHub Actions:
+    #  GITHUB_ACTIONS: set to true by GitHub Actions when running in that context. We use that to determine which CI system to set up for.
+    #  GITHUB_TOKEN: GitHub token granting API access to the repository, set automatically but GitHub Actions when running in that context.
+    #  GITHUB_REPOSITORY: the GitHub repo hosting this project, set automatically by GitHub Actions when running in that context.
 
-    # Pass in 'cloud_provider' as variable to pick the pre-licensed GRID driver to install
+
+    # CI System: automatically set based on presence or absence of GITHUB_ACTIONS environment variable, override with --extra-vars if needed
+    ci_system: "{{ 'github_actions' if lookup('env','GITHUB_ACTIONS') == 'true' else 'azure_pipelines' }}"
+    # Cloud Provider: defaults to "azure", can also specify "aws" or "gcp". Typically set as an --extra-vars on the ansible-playbook command line
+    cloud_provider: "azure"
+
+    # Set ci_agent_version to "latest" to use latest version of the Azure Pipelines / GitHub Actions agent, otherwise lock it to a specific version.
+    # Don't prepend "v" to the semantic version number if you want to lock the agent version, using for instance "2.165.2"
+    ci_agent_version: "latest"
+    # What to ask for from the GitHub versions API
+    ci_agent_version_api: "{{ 'latest' if ci_agent_version == 'latest' else 'tags/v{{ ci_agent_version }}' }}"
+    ci_agent_dir: "ci_agent"
+    ci_agent_local_filename: "/tmp/ci_agent.tar.gz"
+    ci_agent_repo:
+      azure_pipelines: "Microsoft/azure-pipelines-agent"
+      github_actions:  "actions/runner"
+    ci_agent_download_prefix:
+      azure_pipelines: "https://vstsagentpackage.azureedge.net/agent/"
+      github_actions:  "https://github.com/actions/runner/releases/download/v"
+    ci_agent_base_filename:
+      azure_pipelines: "vsts-agent-linux-x64"
+      github_actions:  "actions-runner-linux-x64"
+    # For GitHub Actions this will get replaced by a specific registration token for the runner API
+    ci_agent_registration_token:
+      azure_pipelines: "{{ lookup('env','AZURE_DEVOPS_PAT_TOKEN') }}"
+      github_actions:  "{{ lookup('env','GITHUB_TOKEN') }}"
+      
+    github_repository: "{{ lookup('env','GITHUB_REPOSITORY') }}"
+
+    ci_agent_registration_url:
+      azure_pipelines: "https://dev.azure.com/{{ lookup('env','AZURE_DEVOPS_ORGANIZATION') }}"
+      github_actions: "https://github.com/{{ github_repository }}"
+    ci_agent_registration_options:
+      azure_pipelines: "--auth pat 
+        --pool '{{ lookup('env','AZURE_DEVOPS_GPU_POOL') }}' 
+        --agent {{ ansible_hostname }} 
+        --acceptTeeEula"
+      github_actions: "--work _work
+        --name {{ ansible_hostname }}"
+
+    # Pre-licensed GRID driver to install based on cloud_provider variable
     nvidia_grid_driver_source:
       # See https://docs.microsoft.com/en-us/azure/virtual-machines/linux/n-series-driver-setup
       # and https://github.com/Azure/azhpc-extensions/blob/master/NvidiaGPU/resources.json for direct
@@ -146,58 +190,92 @@
       state: restarted
       name: docker
 
-  - name: Download Azure Pipelines agent for Linux
+  # Figure out version number corresponding to "latest" agent release
+  # We're bypassing the more specific API to get the latest GitHub Actions self-hosted runner download
+  # documented at https://developer.github.com/v3/actions/self_hosted_runners/ to use instead the generic GitHub releases API
+  - name: Query latest version of CI agent
+    uri:
+      url: "https://api.github.com/repos/{{ ci_agent_repo[ci_system] }}/releases/{{ ci_agent_version_api }}"
+    register: ci_agent_version_json
+    when:
+      ci_agent_version == "latest"
+
+  # Update to the actual "latest" version
+  - name: Update to the actual latest CI agent version
+    set_fact:
+      ci_agent_version: "{{ ci_agent_version_json.json.tag_name | regex_replace('^v(.+)$', '\\1') }}"
+    when:
+      ci_agent_version == "latest"
+
+  - name: Download CI agent for Linux
     get_url:
-      url: "https://vstsagentpackage.azureedge.net/agent/{{ azure_pipelines_agent_version }}/{{ azure_pipelines_agent_filename}}"
-      dest: "/tmp/{{ azure_pipelines_agent_filename }}"
+      url: "{{ ci_agent_download_prefix[ci_system] }}{{ ci_agent_version }}/{{ ci_agent_base_filename[ci_system] }}-{{ ci_agent_version }}.tar.gz"
+      dest: "{{ ci_agent_local_filename }}"
       mode: '0644'
 
-  - name: Create install dir for Azure Pipelines agent
+  - name: Create install dir for CI agent
     file:
-      path: "~/{{ azure_pipelines_agent_dir }}"
+      path: "~/{{ ci_agent_dir }}"
       state: directory
     become: no
   
-  - name: Unpack the archive into installation dir
+  - name: Unpack the CI agent archive into installation dir
     unarchive:
-      src: "/tmp/{{ azure_pipelines_agent_filename }}"
-      dest: "~/{{ azure_pipelines_agent_dir }}"
+      src: "{{ ci_agent_local_filename }}"
+      dest: "~/{{ ci_agent_dir }}"
       remote_src: yes
     become: no
     args:
-      creates: "~/{{ azure_pipelines_agent_dir }}/config.sh"
+      creates: "~/{{ ci_agent_dir }}/config.sh"
 
-  - name: Configure the Azure Pipelines agent
-    command: "./config.sh --unattended 
-      --url https://dev.azure.com/{{ azure_pipelines_organization }} 
-      --auth pat 
-      --token {{ azure_pipelines_token }} 
-      --pool '{{ azure_pipelines_pool }}' 
-      --agent {{ ansible_hostname }} 
+  # For GitHub Actions we need a specific registration token
+  - name: Get GitHub Actions registration token
+    uri:
+      url:     "https://api.github.com/repos/{{ github_repository }}/actions/runners/registration-token"
+      method: POST
+      status_code: 201
+      headers:
+         Authorization: "token {{ ci_agent_registration_token[ci_system] }}"
+    register: github_registration_token
+    no_log: False
+    when:
+      ci_system == "github_actions"
+
+  - name: Set CI agent registration token
+    set_fact:
+      ci_agent_token: "{{ github_registration_token.json.token if ci_system == 'github_actions' else ci_agent_registration_token[ci_system] }}"
+    when:
+      ci_system == "github_actions"
+
+  - name: Configure the CI agent
+    command: "./config.sh
+      --url {{ ci_agent_registration_url[ci_system] }}
+      --token {{ ci_agent_token }}
+      --unattended
       --replace
-      --acceptTeeEula"
+      {{ ci_agent_registration_options[ci_system] }}"
     become: no
-    no_log: True
+    no_log: False
     args:
-      chdir: "~/{{ azure_pipelines_agent_dir}}"
-      creates: "~/{{ azure_pipelines_agent_dir}}/.agent"
+      chdir: "~/{{ ci_agent_dir}}"
+      creates: "~/{{ ci_agent_dir}}/.agent"
 
   - name: Test for service already created
     shell: "./svc.sh status | grep -q -v -e '^$' -e  'not installed'"
-    register: azure_pipelines_service_installed
+    register: ci_agent_service_installed
     ignore_errors: true
     args:
-      chdir: "~{{ ansible_user }}/{{ azure_pipelines_agent_dir }}"
+      chdir: "~{{ ansible_user }}/{{ ci_agent_dir }}"
 
-  - name: Install Azure Pipelines agent as a service
+  - name: Install CI agent as a service
     command: "./svc.sh install"
     args:
-      chdir: "~{{ ansible_user }}/{{ azure_pipelines_agent_dir }}"
+      chdir: "~{{ ansible_user }}/{{ ci_agent_dir }}"
     when:
-      azure_pipelines_service_installed.rc == 1
+      ci_agent_service_installed.rc == 1
 
   # No harm done if already started
-  - name: Start the Azure Pipelines agent service
+  - name: Start the CI agent service
     command: "./svc.sh start"
     args:
-      chdir: "~{{ ansible_user }}/{{ azure_pipelines_agent_dir }}"
+      chdir: "~{{ ansible_user }}/{{ ci_agent_dir }}"

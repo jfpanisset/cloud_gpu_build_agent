@@ -8,7 +8,7 @@ To run hardware accelerated OpenGL on a NVIDIA GPU in a virtual machine, you nee
 - AWS: [Installing the NVIDIA Driver on Linux Instances](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/install-nvidia-driver.html)
 - GCP: [Installing GRID drivers for virtual workstations](https://cloud.google.com/compute/docs/gpus/add-gpus#installing_grid_drivers_for_virtual_workstations)
 
-This project also demonstrates how you can trigger the on-demand build of a GPU-accelerated build agent directly from an Azure Pipelines job, run a workload that requires a GPU (for instance a build and test cycle for a project that uses a GPU) and destroy the build agent once you are done to avoid the cost of a full time GPU instance.
+This project also demonstrates how you can trigger the on-demand build of a GPU-accelerated build agent directly from an Azure Pipelines or GitHub Actions job, run a workload that requires a GPU (for instance a build and test cycle for a project that uses a GPU) and destroy the build agent once you are done to avoid the cost of a full time GPU instance.
 
 ## Azure Pipelines Setup
 
@@ -44,6 +44,10 @@ jobs:
 to force a job to run on your custom build agent from your custom agent pool instead of using the pre-defined (Microsoft hosted) agent pools provided by Azure Pipelines. It is also possible to create an agent pool at the organization level, when creating the agent pool at the project level you will have the option to link an existing agent pool.
 
 Unfortunately the `az pipelines pool` currently does not support creating agent pools, so this step cannot be automated without resorting to using [the corresponding Azure DevOps REST API](https://docs.microsoft.com/en-us/rest/api/azure/devops/distributedtask/pools?view=azure-devops-rest-6.0). [Issue #808 against the azure-devops-cli-extension project](https://github.com/Azure/azure-devops-cli-extension/issues/808) documents an existing feature request to expose this functionality in the Azure CLI tool.
+
+## GitHub Actions Setup
+
+TODO
 
 ## Local Setup
 
@@ -393,3 +397,19 @@ The blog entry is somewhat more clever: it installs a daemon on the GPU build ag
 - pipeline (secret) environment variable GOOGLE_CLOUD_KEYFILE_JSON containing what is in the JSON credentials file
 - pipeline environment variables AZURE_DEVOPS_ORGANIZATION and AZURE_DEVOPS_PAT_TOKEN to allow agent to register with Azure Pipelines pool
 - Agents pools called "GPU Ubuntu 18.04 azure", "GPU Ubuntu 18.04 aws" and "GPU Ubuntu 18.04 gcp"
+
+## On Demand Self Hosted Runner on GitHub Actions
+
+GitHub Actions is very similar to Azure Pipelines, the approach is mostly the same except for some small details: some differences in how the agent is installed and registered, and a different but closely related for the YAML syntax describing the workflow.
+
+### Prerequisites
+
+- Terraform Cloud account to store the Terraform state between pipeline stages
+- Workspace in the Terraform Cloud account named aswf_build_azure, aswf_build_gcp and aswf_build_aws without VCS connection, set to Execution Mode: Local
+- API user token stored as TF_API_TOKEN secret variable in GitHub repo
+- Terraform Cloud organization name in TF_API_ORGANIZATION, secret variable in GitHub repo
+- The Terraform Cloud workspace named is specified in backend.hcl
+- a pair of public/private ssh keys generated with ssh-keygen -o and stored in the secret variables ID_RSA and ID_RSA_PUB
+- secret environment variables ARM_CLIENT_ID, ARM_CLIENT_SECRET, ARM_SUBSCRIPTION_ID and ARM_TENANT_ID for the Azure subscription that will be used to create a GPU VM
+- secret environment variables TF_VAR_aws_access_key_id and TF_VAR_aws_secret_access_key for the AWS account
+- secret environment variable GOOGLE_CLOUD_KEYFILE_JSON containing what is in the JSON credentials file

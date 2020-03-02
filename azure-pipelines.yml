@@ -7,7 +7,6 @@
 # - allow the GPU builder to stick around for a few minutes, don't always destroy it
 # - correctly deregister the GPU build agent from the pool before destroying it
 # - consider generating temp ssh keys on the fly to provision GPU build agent
-# - Demonstrate GCP and AWS
 # - Figure out dependencies between matrixed jobs
 
 trigger:
