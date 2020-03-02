@@ -48,6 +48,7 @@ jobs:
           sudo chown $(id -u):$(id -g) ~/.ssh/id_rsa.pub
           chmod 600 ~/.ssh/id_rsa
           chmod 644 ~/.ssh/id_rsa.pub
+          cat ~/.ssh/id_rsa.pub
         shell: bash
       - name: Terraform builds the GPU build agent
         working-directory: ./${{ matrix.cspName }}
