@@ -42,10 +42,8 @@ jobs:
         run: |
           mkdir ~/.ssh
           chmod 700 ~/.ssh
-          sudo echo $ID_RSA > ~/.ssh/id_rsa
-          sudo echo $ID_RSA_PUB > ~/.ssh/id_rsa.pub
-          sudo chown $(id -u):$(id -g) ~/.ssh/id_rsa
-          sudo chown $(id -u):$(id -g) ~/.ssh/id_rsa.pub
+          echo $ID_RSA > ~/.ssh/id_rsa
+          echo $ID_RSA_PUB > ~/.ssh/id_rsa.pub
           chmod 600 ~/.ssh/id_rsa
           chmod 644 ~/.ssh/id_rsa.pub
         shell: bash
@@ -89,10 +87,8 @@ jobs:
         run: |
           mkdir ~/.ssh
           chmod 700 ~/.ssh
-          sudo echo $ID_RSA > ~/.ssh/id_rsa
-          sudo echo $ID_RSA_PUB > ~/.ssh/id_rsa.pub
-          sudo chown $(id -u):$(id -g) ~/.ssh/id_rsa
-          sudo chown $(id -u):$(id -g) ~/.ssh/id_rsa.pub
+          echo $ID_RSA > ~/.ssh/id_rsa
+          echo $ID_RSA_PUB > ~/.ssh/id_rsa.pub
           chmod 600 ~/.ssh/id_rsa
           chmod 644 ~/.ssh/id_rsa.pub
         shell: bash

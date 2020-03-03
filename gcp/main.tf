@@ -18,6 +18,7 @@ provider "google" {
 #  credentials = file("${var.your_credentials}")
   project     = var.prefix
   region      = var.region
+  version     = "=3.10.0"
 }
 
 # Enable required APIs on our project
