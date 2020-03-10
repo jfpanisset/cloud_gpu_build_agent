@@ -33,7 +33,7 @@ jobs:
     strategy:
       matrix:
 #        cspName: [azure, aws, gcp]
-      cspName: [aws]
+        cspName: [aws]
       max-parallel: 3
     runs-on: ubuntu-18.04
     steps:
