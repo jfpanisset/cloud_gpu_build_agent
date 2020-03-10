@@ -127,7 +127,7 @@ resource "azurerm_virtual_machine" "main" {
     disable_password_authentication = true
     ssh_keys {
       path     = "/home/${var.admin_username}/.ssh/authorized_keys"
-      key_data = file(pathexpand("~/.ssh/id_rsa.pub"))
+      key_data = file("~/.ssh/id_rsa.pub")
     }
   }
   tags = {
@@ -137,7 +137,7 @@ resource "azurerm_virtual_machine" "main" {
     connection {
       type        = "ssh"
       user        = var.admin_username
-      private_key = file(pathexpand("~/.ssh/id_rsa"))
+      private_key = file("~/.ssh/id_rsa")
       host        = data.azurerm_public_ip.main.fqdn
     }
     // Dummy command just to wait until ssh is ready for Ansible

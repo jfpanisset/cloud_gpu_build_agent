@@ -74,7 +74,7 @@ resource "google_compute_instance" "default" {
   }
 
   metadata = {
-    ssh-keys = "${var.admin_username}:${file(pathexpand("~/.ssh/id_rsa.pub"))}"
+    ssh-keys = "${var.admin_username}:${file("~/.ssh/id_rsa.pub")}"
   }
 
   scheduling {
@@ -85,7 +85,7 @@ resource "google_compute_instance" "default" {
   connection {
     type        = "ssh"
     user        = var.admin_username
-    private_key = file(pathexpand("~/.ssh/id_rsa"))
+    private_key = file("~/.ssh/id_rsa")
     host        = self.network_interface.0.access_config.0.nat_ip
   }
   provisioner "remote-exec" {
