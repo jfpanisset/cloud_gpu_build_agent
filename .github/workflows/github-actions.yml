@@ -32,7 +32,8 @@ jobs:
   GPUCreateTerraform:
     strategy:
       matrix:
-        cspName: [azure, aws, gcp]
+#        cspName: [azure, aws, gcp]
+      cspName: [aws]
       max-parallel: 3
     runs-on: ubuntu-18.04
     steps:
@@ -50,6 +51,7 @@ jobs:
       - name: Terraform builds the GPU build agent
         working-directory: ./${{ matrix.cspName }}
         run: |
+          cat ~/.ssh/id_rsa.pub
           terraform init -backend-config="token=$TF_API_TOKEN" -backend-config="organization=$TF_API_ORGANIZATION" -backend-config=backend.hcl
           terraform apply -auto-approve
         shell: bash
@@ -58,7 +60,8 @@ jobs:
     needs: GPUCreateTerraform
     strategy:
       matrix:
-        cspName: [azure, aws, gcp]
+#        cspName: [azure, aws, gcp]
+        cspName: [aws]
       max-parallel: 3
     # We're assuming that self-hosted runners are the GPU-enabled ones we just created
     runs-on: [self-hosted, linux, x64]
@@ -77,7 +80,8 @@ jobs:
     needs: GPUDemoOpenGL
     strategy:
       matrix:
-        cspName: [azure, aws, gcp]
+#        cspName: [azure, aws, gcp]
+        cspName: [aws]
       max-parallel: 3
     runs-on: ubuntu-18.04
     steps:
