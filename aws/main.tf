@@ -116,7 +116,7 @@ data "aws_ami" "ubuntu" {
 
 resource "aws_key_pair" "my_key_pair" {
   key_name = var.admin_username
-  public_key = file(pathexpand("~/.ssh/id_rsa.pub"))
+  public_key = file("/home/runner/.ssh/id_rsa.pub")
 }
 
 resource "aws_instance" "my_instance" {
@@ -137,7 +137,7 @@ resource "aws_instance" "my_instance" {
     connection {
       type        = "ssh"
       user        = var.admin_username
-      private_key = file(pathexpand("~/.ssh/id_rsa"))
+      private_key = file("/home/runner/.ssh/id_rsa")
       host        = self.public_ip
     }
     // Dummy command just to wait until ssh is ready for Ansible
