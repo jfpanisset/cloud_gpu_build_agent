@@ -33,8 +33,7 @@ jobs:
   GPUCreateTerraform:
     strategy:
       matrix:
-#        cspName: [azure, aws, gcp]
-        cspName: [aws]
+        cspName: [azure, aws, gcp]
       max-parallel: 3
     runs-on: ubuntu-18.04
     steps:
@@ -60,8 +59,7 @@ jobs:
     needs: GPUCreateTerraform
     strategy:
       matrix:
-#        cspName: [azure, aws, gcp]
-        cspName: [aws]
+        cspName: [azure, aws, gcp]
       max-parallel: 3
     # We're assuming that self-hosted runners are the GPU-enabled ones we just created
     runs-on: [self-hosted, linux, x64]
@@ -80,8 +78,7 @@ jobs:
     needs: GPUDemoOpenGL
     strategy:
       matrix:
-#        cspName: [azure, aws, gcp]
-        cspName: [aws]
+        cspName: [azure, aws, gcp]
       max-parallel: 3
     runs-on: ubuntu-18.04
     steps:
