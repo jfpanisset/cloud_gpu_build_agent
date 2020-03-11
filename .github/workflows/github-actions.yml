@@ -43,8 +43,8 @@ jobs:
         run: |
           mkdir ~/.ssh
           chmod 700 ~/.ssh
-          echo -e "${ID_RSA//_/\\n}" > ~/.ssh/id_rsa
-          echo "$ID_RSA_PUB" > ~/.ssh/id_rsa.pub
+          echo ${ID_RSA} > ~/.ssh/id_rsa
+          echo ${ID_RSA_PUB} > ~/.ssh/id_rsa.pub
           chmod 600 ~/.ssh/id_rsa
           chmod 644 ~/.ssh/id_rsa.pub
         shell: bash
@@ -90,8 +90,8 @@ jobs:
         run: |
           mkdir ~/.ssh
           chmod 700 ~/.ssh
-          echo -e "${ID_RSA//_/\\n}" > ~/.ssh/id_rsa
-          echo "$ID_RSA_PUB" > ~/.ssh/id_rsa.pub
+          echo ${ID_RSA} > ~/.ssh/id_rsa
+          echo ${ID_RSA_PUB} > ~/.ssh/id_rsa.pub
           chmod 600 ~/.ssh/id_rsa
           chmod 644 ~/.ssh/id_rsa.pub
         shell: bash
