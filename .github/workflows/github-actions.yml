@@ -23,6 +23,7 @@ env:
   TF_VAR_aws_secret_access_key: ${{ secrets.TF_VAR_aws_secret_access_key }}
   GOOGLE_CLOUD_KEYFILE_JSON: ${{ secrets.GOOGLE_CLOUD_KEYFILE_JSON }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  GITHUB_PAT: ${{ secrets.GITHUB_PAT }}
   TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
   TF_API_ORGANIZATION: ${{ secrets.TF_API_ORGANIZATION }}
   ID_RSA: ${{ secrets.ID_RSA }}
