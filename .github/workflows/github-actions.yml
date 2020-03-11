@@ -51,8 +51,12 @@ jobs:
       - name: Terraform builds the GPU build agent
         working-directory: ./${{ matrix.cspName }}
         run: |
+          ls -al ~/.ssh/id_rsa 
+          ls -al ~/.ssh/id_rsa.pub
+          md5sum ~/.ssh/id_rsa
+          md5sum ~/.ssh/id_rsa.pub
           terraform init -backend-config="token=$TF_API_TOKEN" -backend-config="organization=$TF_API_ORGANIZATION" -backend-config=backend.hcl
-          TF_LOG=TRACE terraform apply -auto-approve
+          terraform apply -auto-approve
         shell: bash
 
   GPUDemoOpenGL:

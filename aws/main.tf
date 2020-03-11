@@ -138,7 +138,6 @@ resource "aws_instance" "my_instance" {
       type        = "ssh"
       user        = var.admin_username
       private_key = file("~/.ssh/id_rsa")
-      agent       = false
       host        = self.public_ip
     }
     // Dummy command just to wait until ssh is ready for Ansible
