@@ -15,7 +15,7 @@
     #  GITHUB_ACTIONS: set to true by GitHub Actions when running in that context. We use that to determine which CI system to set up for.
     #  GITHUB_TOKEN: GitHub token granting API access to the repository, set automatically but GitHub Actions when running in that context.
     #  GITHUB_REPOSITORY: the GitHub repo hosting this project, set automatically by GitHub Actions when running in that context.
-
+    #  GITHUB_PAT: Unfortunately the GITHUB_TOKEN generated automatically by GitHub Actions doesn't have administration permission so we need our own
 
     # CI System: automatically set based on presence or absence of GITHUB_ACTIONS environment variable, override with --extra-vars if needed
     ci_system: "{{ 'github_actions' if lookup('env','GITHUB_ACTIONS') == 'true' else 'azure_pipelines' }}"
@@ -41,7 +41,7 @@
     # For GitHub Actions this will get replaced by a specific registration token for the runner API
     ci_agent_registration_token:
       azure_pipelines: "{{ lookup('env','AZURE_DEVOPS_PAT_TOKEN') }}"
-      github_actions:  "{{ lookup('env','GITHUB_TOKEN') }}"
+      github_actions:  "{{ lookup('env','GITHUB_PAT') }}"
       
     github_repository: "{{ lookup('env','GITHUB_REPOSITORY') }}"
 

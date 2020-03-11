@@ -413,3 +413,6 @@ GitHub Actions is very similar to Azure Pipelines, the approach is mostly the sa
 - secret environment variables ARM_CLIENT_ID, ARM_CLIENT_SECRET, ARM_SUBSCRIPTION_ID and ARM_TENANT_ID for the Azure subscription that will be used to create a GPU VM
 - secret environment variables TF_VAR_aws_access_key_id and TF_VAR_aws_secret_access_key for the AWS account
 - secret environment variable GOOGLE_CLOUD_KEYFILE_JSON containing what is in the JSON credentials file
+- secret environment variables ID_RSA and ID_RSA_PUB with the private and public keys, the private key must be generated with ssh-keygen -m PEM -t rsa  -b 2048 -f ./github_actions -C github_action and have linefeeds encoded with tr to replace with underscores: tr '\012' '_' <  github_actions
+- to use token to register runner, "GitHub Apps must have the administration permission to use this endpoint."
+- secret environment GITHUB_PAT : default GITHUB_TOKEN auto generated in the environment doesn't have "administration" privileges, so you have to use a Personal Access Token you create yourself
