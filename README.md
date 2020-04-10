@@ -1,6 +1,6 @@
-# Azure Pipelines Cloud GPU Build Agent
+# Azure Pipelines and GitHub Actions Cloud GPU Build Agent
 
-This small project demonstrates the basics of how to use [HashiCorp Terraform](https://terraform.io) to create a GPU-enabled VM on Google Cloud Platform (gcp), Microsoft Azure or Amazone AWS which can then be used to run build or test jobs from Azure Pipelines in the context of the [Academy Software Foundation](https://aswf.io) Continuous Integration framework. The Terraform code requires version 0.12 or newer of Terraform due to [changes in the variable interpolation syntax](https://www.terraform.io/upgrade-guides/0-12.html#first-class-expressions).
+This small project demonstrates the basics of how to use [HashiCorp Terraform](https://terraform.io) to create a GPU-enabled VM on Google Cloud Platform (gcp), Microsoft Azure or Amazone AWS which can then be used to run build or test jobs from Azure Pipelines or GitHub Actions in the context of the [Academy Software Foundation](https://aswf.io) Continuous Integration framework. The Terraform code requires version 0.12 or newer of Terraform due to [changes in the variable interpolation syntax](https://www.terraform.io/upgrade-guides/0-12.html#first-class-expressions).
 
 To run hardware accelerated OpenGL on a NVIDIA GPU in a virtual machine, you need a [NVIDIA GRID vGPU license](https://www.nvidia.com/en-us/data-center/virtual-pc-apps/) which can be provided by the Cloud Service Provider. The base K80 GPU typically available on public clouds does not support GRID and will not support OpenGL, only CUDA. A GPU which supports GRID licensing is required, Azure offers the M60 on its NV series of VMs, Amazon on its `g3.xlarge` instances, and GCP offers the P4. Instructions on how to obtain and install a cloud provider specific pre-licensed NVIDIA driver are available at:
 
@@ -224,7 +224,6 @@ to download updates to providers and modules.
 
 This will copy your public SSH key from your `~/.ssh/id_rsa.pub` file to the VM to enable passwordless `ssh` access:
 
-
 ```bash
 ssh testadmin@`terraform output public_ip_address`
 ```
@@ -270,7 +269,7 @@ terraform apply -var 'prefix=PROJECTNAME'
 
 The first time you try to run this Terraform code, you may get the following error:
 
-```
+```none
 Error launching source instance: PendingVerification: Your request for accessing resources in this region is being validated, and you will not be able to launch additional resources in this region until the validation is complete. We will notify you by email once your request has been validated. While normally resolved within minutes, please allow up to 4 hours for this process to complete. If the issue still persists, please let us know by writing to aws-verification@amazon.com for further assistance.
 ```
 
@@ -278,7 +277,7 @@ This may be due to a first time use of a billable resource, and the need to veri
 
 You may also get the following error:
 
-```
+```none
 Error: Error launching source instance: VcpuLimitExceeded: You have requested more vCPU capacity than your current vCPU limit of 0 allows for the instance bucket that the specified instance type belongs to. Please visit http://aws.amazon.com/contact-us/ec2-request to request an adjustment to this limit.
 ```
 
@@ -383,7 +382,6 @@ Each stage in an Azure pipeline can specify a separate agent pool, allowing you 
 
 The blog entry is somewhat more clever: it installs a daemon on the GPU build agent that keeps the GPU agent alive for a specified amount of time so it can be reused it for multiple builds / build stages, and leverages [Terraform Cloud](https://www.hashicorp.com/blog/announcing-terraform-cloud/), the hosted version of Terraform to destroy itself after a period of inactivity.
 
-
 ### Prerequisites
 
 - Terraform Cloud account to store the Terraform state between pipeline stages
@@ -400,7 +398,7 @@ The blog entry is somewhat more clever: it installs a daemon on the GPU build ag
 
 ## On Demand Self Hosted Runner on GitHub Actions
 
-GitHub Actions is very similar to Azure Pipelines, the approach is mostly the same except for some small details: some differences in how the agent is installed and registered, and a different but closely related for the YAML syntax describing the workflow.
+GitHub Actions is very similar to Azure Pipelines, the approach is mostly the same except for some small details: some differences in how the agent is installed and registered, and a different but closely related YAML syntax describing the workflow.
 
 ### Prerequisites
 
